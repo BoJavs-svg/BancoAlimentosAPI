@@ -1,0 +1,24 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "source/server.ts",
+            "use": "@vercel/node",
+            "config": { "includeFiles": ["source/**"] }
+        }
+    ],
+    "routes": [
+        {
+            "src": "/controllers/(.*)",
+            "dest": "source/controllers/post.ts" 
+        },
+        {
+            "src": "/routes/(.*)",
+            "dest": "source/routes/post.ts" 
+        },
+        {
+            "src": "/(.*)",
+            "dest": "source/server.ts" 
+        }
+    ]
+}
