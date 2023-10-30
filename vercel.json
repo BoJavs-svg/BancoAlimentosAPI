@@ -7,17 +7,6 @@
             "config": { "includeFiles": ["source/**"] }
         }
     ],
-    "headers": [
-        {
-          "source": "/(.*)",
-          "headers": [
-            {
-              "key": "Access-Control-Allow-Origin",
-              "value": "*"
-            }
-          ]
-        }
-      ],
     "routes": [
         {
             "src": "/controllers/(.*)",
