@@ -7,12 +7,17 @@
             "config": { "includeFiles": ["source/**"] }
         }
     ],
-    
-    "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-      },
+    "headers": [
+        {
+          "source": "/(.*)",
+          "headers": [
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            }
+          ]
+        }
+      ],
     "routes": [
         {
             "src": "/controllers/(.*)",
