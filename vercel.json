@@ -7,12 +7,6 @@
           "config": { "includeFiles": ["source/**"] }
         }
       ],
-    "routes": [
-        {
-            "src": "/(.*)",
-            "dest": "source/server.ts" 
-        }
-    ],
     "headers": [
       {
         "source": "/(.*)",
