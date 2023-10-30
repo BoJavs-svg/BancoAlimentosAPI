@@ -32,6 +32,7 @@
     "typescript": "^5.2.2"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.15",
     "@types/dotenv": "^8.2.0",
     "@types/parse": "^3.0.5"
   }
