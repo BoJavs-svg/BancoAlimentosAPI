@@ -7,27 +7,18 @@
             "config": { "includeFiles": ["source/**"] }
           }
         ],
-      "headers": [
-        {
-          "source": "/(.*)",
-          "headers": [
-            {
-              "key": "Access-Control-Allow-Origin",
-              "value": "*"
-            },
-            {
-              "key": "Access-Control-Allow-Methods",
-              "value": "GET, POST, PATCH, DELETE, PUT, OPTIONS"
-            },
-            {
-              "key": "Access-Control-Allow-Headers",
-              "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version"
-            },
-            {
-              "key": "Access-Control-Allow-Credentials",
-              "value": "true"
-            }
-          ]
-        }
+        "routes": [
+          {
+              "src": "/controllers/(.*)",
+              "dest": "source/controllers/post.ts" 
+          },
+          {
+              "src": "/routes/(.*)",
+              "dest": "source/routes/post.ts" 
+          },
+          {
+              "src": "/(.*)",
+              "dest": "source/server.ts" 
+          }
       ]
   }
