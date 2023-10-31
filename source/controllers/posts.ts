@@ -176,13 +176,14 @@ const getComment = async (req: Request, res: Response, next: NextFunction) => {
 
 const likePost = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const postId = req.params.postId; // Assuming you have a postId parameter in the URL
+        const postId = req.params.postId;
+        const like = parseInt(req.params.like);
         const query = new Parse.Query('Post');
         
         // Retrieve the post object based on the postId.
         const post = await query.get(postId);
         if (post) {
-            post.increment('nLikes', 1);
+            post.increment('nLikes', like);
             
             const updatedPost = await post.save();
             return res.status(200).json({
