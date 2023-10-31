@@ -5,7 +5,6 @@ import morgan from 'morgan';
 import routes from './routes/posts';
 import cors from 'cors';
 
-
 const router: Express = express();
 router.use(cors());
 
