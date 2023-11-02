@@ -4,12 +4,12 @@ import controller from '../controllers/posts';
 const router = express.Router();
 //User
 
-router.get('/userLogin', controller.userLogin);//
 router.get('/getPosts', controller.getPost);
 router.get('/getComments', controller.getComment);
 router.get('/getPollito/:polloId', controller.getPollito);
 
 router.post('/userSignUp', controller.createUser);
+router.post('/userLogin', controller.userLogin);
 router.post('/post', controller.createPost);
 router.post('/comment', controller.createComment);
 

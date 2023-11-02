@@ -63,7 +63,7 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
 const userLogin = async (req: Request, res: Response, next: NextFunction) => {
     try{
     const{username,password}=req.body
-    const user = await Parse.User.logIn(username, password, { usePost: false });
+    const user = await Parse.User.logIn(username, password);
     return res.status(200).json({
         user: user,
     });
