@@ -159,12 +159,18 @@ const createComment = async (req: Request, res: Response, next: NextFunction) =>
 
 const getComment = async (req: Request, res: Response, next: NextFunction) => {
     try{
-        const query  = new Parse.Query('Comment');
-
-        let comments: Parse.Object[] = await query.find();
+        const postId = req.params.postId;
+        const Comment = Parse.Object.extend("Comment")
+        const query  = new Parse.Query(Comment);
+        const queryPost = new Parse.Query('Post');
+        const Post = await queryPost.get(postId);
+   
+        query.equalTo("postId", Post);
+        const comments = await query.find();
         return res.status(200).json({
             message: 'Comments retrieved',
             comments: comments,
+            postId: postId,
         });
 
     } catch (error){
