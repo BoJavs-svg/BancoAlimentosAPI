@@ -5,7 +5,7 @@ const router = express.Router();
 //User
 
 router.get('/getPosts', controller.getPost);
-router.get('/getComments', controller.getComment);
+router.get('/getComments/:postId', controller.getComment);
 router.get('/getPollito/:polloId', controller.getPollito);
 
 router.post('/userSignUp', controller.createUser);
