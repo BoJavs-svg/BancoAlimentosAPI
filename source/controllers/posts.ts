@@ -201,6 +201,35 @@ const likePost = async (req: Request, res: Response, next: NextFunction) => {
         });
     }
 }
+
+const likeComment = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const commentId = req.params.commentId;
+        const like = parseInt(req.params.like);
+        const query = new Parse.Query('Comment');
+        
+        // Retrieve the post object based on the postId.
+        const post = await query.get(commentId);
+        if (post) {
+            post.increment('nLikes', like);
+            
+            const updatedComment = await post.save();
+            return res.status(200).json({
+                message: 'Comment liked successfully',
+            });
+        } else {
+            return res.status(404).json({
+                message: 'Comment not found',
+            });
+        }
+
+    } catch (error){
+        return res.status(500).json({
+            message: error,
+        });
+    }
+}
+
 const viewPost = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const postId = req.params.postId; // Assuming you have a postId parameter in the URL
@@ -258,33 +287,43 @@ const editPost = async (req: Request, res: Response, next: NextFunction) => {
         });
     }
 }
-const reportPost = async (req: Request, res: Response, next: NextFunction) => {
+const report = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const postId = req.params.postId; // Assuming you have a postId parameter in the URL
-        const query = new Parse.Query('Post');
-        // Retrieve the post object based on the postId.
-        const post = await query.get(postId);
-        if (post) {
-            post.set('reported',true)
-            const updatedPost = await post.save();
+        const {cause} = req.body;
+        const objId = req.params.objtId; 
+        const type = parseInt(req.params.type);
+        let query; 
+        if (type==0){
+            query = new Parse.Query('Post');
+        }else if(type==1){
+            query = new Parse.Query('Comment');
+        }else{
+            return res.status(404).json({
+                message: 'Type not found',
+            });
+        }
+        const obj = await query.get(objId);
+        if (obj) {
+            obj.set('reported',true)
+            const updatedPost = await obj.save();
 
             const ReportedPost = Parse.Object.extend('ReportedPost');
             const reportedPost = new ReportedPost();
-
-            reportedPost.set('post', post);
-            // Save the reported post
+            if (type==0){
+                reportedPost.set('post', obj);
+            }else if(type==1){
+                reportedPost.set('comment', obj);
+            }
+            reportedPost.set('cause', cause);
             await reportedPost.save();
-
             return res.status(200).json({
-                message: 'Post reported successfully',
+                message: 'Reported successfully',
             });
-
         } else {
             return res.status(404).json({
-                message: 'Post not found',
+                message: 'Object not found',
             });
         }
-
     } catch (error){
         return res.status(500).json({
             message: error,
@@ -338,4 +377,4 @@ const patchPollito = async (req: Request, res: Response, next: NextFunction) => 
         });
     }
 }
-export default { createUser ,userLogin, createPost, getPost, createComment, getComment,likePost,viewPost,editPost,reportPost, getPollito, patchPollito};
+export default { createUser ,userLogin, createPost, getPost, createComment, getComment,likePost,viewPost,editPost,report, getPollito, patchPollito, likeComment};
