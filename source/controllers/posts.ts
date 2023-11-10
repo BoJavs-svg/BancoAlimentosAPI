@@ -294,6 +294,7 @@ return res.status(500).json({
     });
   }
 };
+
 const editPost = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const postId = req.params.postId; // Assuming you have a postId parameter in the URL
