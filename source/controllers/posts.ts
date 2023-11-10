@@ -143,14 +143,20 @@ const getPost = async (req: Request, res: Response, next: NextFunction) => {
     const parseQuery = new Parse.Query("Post");
     // Save objects returned from find query
     let posts: Parse.Object[] = await parseQuery.find();
+    for(let i=0; i<posts.length; i++){
+        let user = posts[i].get('userId');
+        let userQuery = new Parse.Query('_User');
+        let userObj = await userQuery.get(user.id);
+        posts[i].set('username', userObj.get('username'));
+    }
     return res.status(200).json({
       message: "Posts retrieved",
       posts: posts,
     });
   } catch (error) {
     return res.status(500).json({
-      message: error,
-    });
+        message: 'Internal Server Error',
+      });
   }
 };
 
