@@ -16,36 +16,33 @@ if (appID && jsKey) {
   console.log("No Parse error");
 }
 //USER
-const createUser = async (req: Request, res: Response, next: NextFunction) => {
-  // Create user in database
+interface CreateUserRequest {
+    username: string;
+    password: string;
+    email: string;
+    name: string;
+    nextStage: number;
+  }
+const createUser = async (req: Request<{}, {}, CreateUserRequest>, res:Response, next: NextFunction) => {
   try {
     const { username, password, email, name, nextStage } = req.body;
     const Pollo = Parse.Object.extend("Pollo");
     const pollo = new Pollo();
-    // Set properties for the object
-    pollo.set("name", name);
     pollo.set("nextStage", nextStage);
-    // Save the object to the database
     await pollo.save();
-
-    // Create a new Parse User object
     const User = Parse.Object.extend("_User");
     const user = new User();
 
-    // Set properties for the User object
     user.set("username", username);
     user.set("password", password);
     user.set("email", email);
 
-    user.set("badges", []); // Initialize badges as an empty array
-    user.set("idProfilePicture", 0); // Initialize profile picture ID 0 is starting picture for everyone
-    user.set("visBadge", -1); // Initialize visibility badge. -1 means no badges
+    user.set("badges", []);
+    user.set("idProfilePicture", 0);
+    user.set("visBadge", -1);
 
-    // Create a pointer to the Pollo object
     const polloPointer = Pollo.createWithoutData(pollo.id); //
     user.set("pollo", polloPointer);
-
-    // Save the User object to the database
     await user.signUp();
 
     return res.status(200).json({
@@ -53,13 +50,16 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
     });
   } catch (error) {
     return res.status(500).json({
-      message: error,
-    });
+        message: 'Internal Server Error',
+      });
   }
 };
+interface UserLoginRequest {
+    username: string;
+    password: string;
+  }
 
-// Get user by objectId
-const userLogin = async (req: Request, res: Response, next: NextFunction) => {
+const userLogin = async (req: Request<{}, {}, UserLoginRequest>, res: Response, next: NextFunction) => {
   try {
     const { username, password } = req.body;
     const user = await Parse.User.logIn(username, password);
@@ -68,9 +68,9 @@ const userLogin = async (req: Request, res: Response, next: NextFunction) => {
     });
   } catch (error) {
     return res.status(500).json({
-      message: error,
-    });
-  }
+        message: 'Internal Server Error',
+      });
+    }
 };
 
 const authSessionToken = async (
@@ -79,7 +79,7 @@ const authSessionToken = async (
   next: NextFunction
 ) => {
   try {
-    const sessionToken = req.params.sessionToken;
+    const sessionToken : string = req.params.sessionToken;
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
     return res.status(200).json({
@@ -90,7 +90,7 @@ const authSessionToken = async (
       error instanceof Parse.Error &&
       error.code === Parse.Error.OBJECT_NOT_FOUND
     ) {
-      return res.status(401).json({
+      return res.status(404).json({
         message: "Usuario no encontrado",
       });
     } else {
@@ -103,6 +103,8 @@ const authSessionToken = async (
         error: error,
       });
     }
+  }finally {
+    Parse.User.disableUnsafeCurrentUser();
   }
 };
 
@@ -110,30 +112,26 @@ const authSessionToken = async (
 
 const createPost = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    //Get body from endpoint call
-    const { userId, text, title } = req.body;
+    
+    const { sessionToken, text, title }: { sessionToken: string; text: string; title: string } = req.body;
     const Post = Parse.Object.extend("Post");
     const post = new Post();
-
-    //Setting Properties for the title and text:
+    
+    const user = await Parse.User.become(sessionToken);
     post.set("text", text);
     post.set("title", title);
 
-    const User = Parse.Object.extend("_User");
-    const postPointer = User.createWithoutData(userId);
+    post.set("username", user.get("username"));
 
-    post.set("userId", postPointer);
-
-    //Save to database
     await post.save();
 
     return res.status(200).json({
       message: "New post created successfully",
     });
-  } catch (error) {
+    } catch (error) {
     return res.status(500).json({
-      message: error,
-    });
+        message: 'Internal Server Error',
+        });
   }
 };
 
@@ -160,46 +158,38 @@ const getPost = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-//Comments
 
-const createComment = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const createComment = async (req: Request,res: Response,next: NextFunction) => {
   try {
-    const { userId, postId, text } = req.body;
+    const { sessionToken, postId, text }: { sessionToken: string; postId: string; text: string } = req.body;
     const Comment = Parse.Object.extend("Comment");
     const comment = new Comment();
 
+    const user = await Parse.User.become(sessionToken);
     //Set properties of the object Comment
     comment.set("text", text);
 
-    const User = Parse.Object.extend("_User");
-    const commentPointerU = User.createWithoutData(userId);
-
     const Post = Parse.Object.extend("Post");
     const commentPointerP = Post.createWithoutData(postId);
-
-    comment.set("userId", commentPointerU);
+    
+    comment.set('username', user.get('username'));
     comment.set("postId", commentPointerP);
 
-    //Save to database
     await comment.save();
 
     return res.status(200).json({
       message: "New comment created successfully",
     });
   } catch (error) {
-    return res.status(500).json({
-      message: error,
+return res.status(500).json({
+      message: 'Internal Server Error',
     });
   }
 };
 
 const getComment = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const postId = req.params.postId;
+    const postId :string  = req.params.postId;
     const Comment = Parse.Object.extend("Comment");
     const query = new Parse.Query(Comment);
     const queryPost = new Parse.Query("Post");
@@ -219,15 +209,15 @@ const getComment = async (req: Request, res: Response, next: NextFunction) => {
     });
   } catch (error) {
     return res.status(500).json({
-      message: error,
-    });
+        message: 'Internal Server Error',
+      });
   }
 };
 
 const likePost = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const postId = req.params.postId;
-    const like = parseInt(req.params.like);
+    const postId: string = req.params.postId;
+    const like: number = parseInt(req.params.like);
     const query = new Parse.Query("Post");
 
     // Retrieve the post object based on the postId.
@@ -245,9 +235,9 @@ const likePost = async (req: Request, res: Response, next: NextFunction) => {
       });
     }
     } catch (error) {
-        return res.status(500).json({
-            message: error,
-        });
+return res.status(500).json({
+      message: 'Internal Server Error',
+    });
     }
 }
 
@@ -273,9 +263,9 @@ const likeComment = async (req: Request, res: Response, next: NextFunction) => {
         }
 
     } catch (error){
-        return res.status(500).json({
-            message: error,
-        });
+return res.status(500).json({
+      message: 'Internal Server Error',
+    });
     }
 }
 
@@ -300,8 +290,8 @@ const viewPost = async (req: Request, res: Response, next: NextFunction) => {
       });
     }
   } catch (error) {
-    return res.status(500).json({
-      message: error,
+return res.status(500).json({
+      message: 'Internal Server Error',
     });
   }
 };
@@ -330,9 +320,9 @@ const editPost = async (req: Request, res: Response, next: NextFunction) => {
       });
     }
     } catch (error) {
-        return res.status(500).json({
-            message: error,
-        });
+return res.status(500).json({
+      message: 'Internal Server Error',
+    });
     }
 }
 
@@ -374,9 +364,9 @@ const report = async (req: Request, res: Response, next: NextFunction) => {
             });
         }
     } catch (error){
-        return res.status(500).json({
-            message: error,
-        });
+return res.status(500).json({
+      message: 'Internal Server Error',
+    });
     }
 }
 
@@ -406,15 +396,15 @@ const reportPost = async (req: Request, res: Response, next: NextFunction) => {
       });
     }
   } catch (error) {
-    return res.status(500).json({
-      message: error,
+return res.status(500).json({
+      message: 'Internal Server Error',
     });
   }
 };
 
 const getPollito = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const polloId = req.params.polloId; //
+    const polloId : string  = req.params.polloId; //
 
     const query = new Parse.Query("Pollo"); //Pollo
     const pollito = await query.get(polloId);
@@ -424,7 +414,7 @@ const getPollito = async (req: Request, res: Response, next: NextFunction) => {
     });
   } catch (error) {
     return res.status(500).json({
-      message: error,
+      message: 'Internal Server Error',
     });
   }
 };
@@ -454,9 +444,9 @@ const patchPollito = async (
       });
     }
     } catch (error) {
-        return res.status(500).json({
-            message: error,
-        });
+return res.status(500).json({
+      message: 'Internal Server Error',
+    });
     }
 
 }
