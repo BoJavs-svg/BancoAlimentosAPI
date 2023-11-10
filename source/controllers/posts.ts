@@ -9,6 +9,7 @@ dotenv.config();
 const appID = process.env.APPLICATION_ID;
 const jsKey = process.env.JAVASCRIPT_KEY;
 const rest = process.env.REST_API;
+
 if (appID && jsKey) {
   Parse.initialize(appID, jsKey, rest);
   Parse.serverURL = "https://parseapi.back4app.com/";
@@ -23,6 +24,7 @@ interface CreateUserRequest {
     name: string;
     nextStage: number;
   }
+
 const createUser = async (req: Request<{}, {}, CreateUserRequest>, res:Response, next: NextFunction) => {
   try {
     const { username, password, email} = req.body;
@@ -96,6 +98,7 @@ const authSessionToken = async (
   }
 };
 
+
 const createPollo = async (req: Request, res: Response, next: NextFunction) => {
     try{
         const { sessionToken, name }: { sessionToken: string; name: string } = req.body;
@@ -122,7 +125,7 @@ const createPollo = async (req: Request, res: Response, next: NextFunction) => {
 
 const createPost = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    
+
     const { sessionToken, text, title }: { sessionToken: string; text: string; title: string } = req.body;
     const Post = Parse.Object.extend("Post");
     const post = new Post();
@@ -238,7 +241,7 @@ return res.status(500).json({
       message: 'Internal Server Error',
     });
     }
-}
+};
 
 const likeComment = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -266,8 +269,7 @@ return res.status(500).json({
       message: 'Internal Server Error',
     });
     }
-}
-
+};
 
 const viewPost = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -372,7 +374,7 @@ return res.status(500).json({
 
 const reportPost = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const postId = req.params.postId; // Assuming you have a postId parameter in the URL
+    const postId : string = req.params.postId; // Assuming you have a postId parameter in the URL
     const query = new Parse.Query("Post");
     // Retrieve the post object based on the postId.
     const post = await query.get(postId);
