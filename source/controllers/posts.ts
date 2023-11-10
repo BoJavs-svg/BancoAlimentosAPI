@@ -37,6 +37,7 @@ const createUser = async (req: Request<{}, {}, CreateUserRequest>, res:Response,
 
     return res.status(200).json({
       message: "New object created successfully",
+      user: user,
     });
   } catch (error) {
     return res.status(500).json({
@@ -125,11 +126,11 @@ const createPollo = async (req: Request, res: Response, next: NextFunction) => {
 
 const createPost = async (req: Request, res: Response, next: NextFunction) => {
   try {
-
     const { sessionToken, text, title }: { sessionToken: string; text: string; title: string } = req.body;
     const Post = Parse.Object.extend("Post");
     const post = new Post();
     
+    Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
     post.set("text", text);
     post.set("title", title);
@@ -187,6 +188,7 @@ const createComment = async (req: Request,res: Response,next: NextFunction) => {
 
     return res.status(200).json({
       message: "New comment created successfully",
+      
     });
   } catch (error) {
 return res.status(500).json({

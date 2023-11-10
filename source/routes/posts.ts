@@ -9,11 +9,11 @@ router.get("/getComments/:postId", controller.getComment);//
 router.get("/getPollito/:polloId", controller.getPollito);//
 router.get("/authSessionToken/:sessionToken", controller.authSessionToken);
 
-router.post('/userSignUp', controller.createUser);
-router.post('/userLogin', controller.userLogin);
-router.post('/post', controller.createPost);
-router.post('/comment', controller.createComment);
-router.post('/pollo', controller.createPollo);
+router.post('/userSignUp', controller.createUser); //bien
+router.post('/userLogin', controller.userLogin); //bien
+router.post('/post', controller.createPost); //bien
+router.post('/comment', controller.createComment); //bien
+router.post('/pollo', controller.createPollo); 
 
 router.patch('/likePost/:postId/:like', controller.likePost);
 router.patch('/likeComment/:commentId/:like', controller.likeComment);
