@@ -201,10 +201,15 @@ const getComment = async (req: Request, res: Response, next: NextFunction) => {
 
     query.equalTo("postId", Post);
     let comments: Parse.Object[] = await query.find();
+    for(let i=0; i<comments.length; i++){
+        let user = comments[i].get('userId');
+        let userQuery = new Parse.Query('_User');
+        let userObj = await userQuery.get(user.id);
+        comments[i].set('username', userObj.get('username'));
+    }
     return res.status(200).json({
       message: "Comments retrieved",
       comments: comments,
-      postId: postId,
     });
   } catch (error) {
     return res.status(500).json({
