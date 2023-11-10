@@ -1,12 +1,13 @@
 /** source/routes/posts.ts */
-import express from 'express';
-import controller from '../controllers/posts';
+import express from "express";
+import controller from "../controllers/posts";
 const router = express.Router();
 //User
 
-router.get('/getPosts', controller.getPost);
-router.get('/getComments', controller.getComment);
-router.get('/getPollito/:polloId', controller.getPollito);
+router.get("/getPosts", controller.getPost);
+router.get("/getComments/:postId", controller.getComment);
+router.get("/getPollito/:polloId", controller.getPollito);
+router.get("/authSessionToken/:sessionToken", controller.authSessionToken);
 
 router.post('/userSignUp', controller.createUser);
 router.post('/userLogin', controller.userLogin);
@@ -19,6 +20,5 @@ router.patch('/view/:postId', controller.viewPost);
 router.patch('/editPost/:postId',controller.editPost)
 router.patch('/report/:postId',controller.report)
 router.patch('/patchPollito/:polloId', controller.patchPollito);
-
 
 export = router;
