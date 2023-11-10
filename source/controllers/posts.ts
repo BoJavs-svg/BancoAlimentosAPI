@@ -25,24 +25,12 @@ interface CreateUserRequest {
   }
 const createUser = async (req: Request<{}, {}, CreateUserRequest>, res:Response, next: NextFunction) => {
   try {
-    const { username, password, email, name, nextStage } = req.body;
-    const Pollo = Parse.Object.extend("Pollo");
-    const pollo = new Pollo();
-    pollo.set("nextStage", nextStage);
-    await pollo.save();
+    const { username, password, email} = req.body;
     const User = Parse.Object.extend("_User");
     const user = new User();
-
     user.set("username", username);
     user.set("password", password);
     user.set("email", email);
-
-    user.set("badges", []);
-    user.set("idProfilePicture", 0);
-    user.set("visBadge", -1);
-
-    const polloPointer = Pollo.createWithoutData(pollo.id); //
-    user.set("pollo", polloPointer);
     await user.signUp();
 
     return res.status(200).json({
@@ -108,7 +96,29 @@ const authSessionToken = async (
   }
 };
 
+const createPollo = async (req: Request, res: Response, next: NextFunction) => {
+    try{
+        const { sessionToken, name }: { sessionToken: string; name: string } = req.body;
+        const Pollo = Parse.Object.extend("Pollo");
+        const pollo : Parse.Object = new Pollo();
+        const user = await Parse.User.become(sessionToken);
+        pollo.set("name", name);
 
+        const polloPointer = Pollo.createWithoutData(pollo.id);
+        user.set("pollo", polloPointer);
+
+        await user.save();
+        await pollo.save();
+        return res.status(200).json({
+            message: "New pollo created successfully",
+        });
+    }
+    catch (error) {
+        return res.status(500).json({
+            message: 'Internal Server Error',
+        });
+    }   
+}
 
 const createPost = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -122,7 +132,7 @@ const createPost = async (req: Request, res: Response, next: NextFunction) => {
     post.set("title", title);
 
     post.set("username", user.get("username"));
-
+    post.set("idProfilePicture", user.get("idProfilePicture"));
     await post.save();
 
     return res.status(200).json({
@@ -141,12 +151,6 @@ const getPost = async (req: Request, res: Response, next: NextFunction) => {
     const parseQuery = new Parse.Query("Post");
     // Save objects returned from find query
     let posts: Parse.Object[] = await parseQuery.find();
-    for(let i=0; i<posts.length; i++){
-        let user = posts[i].get('userId');
-        let userQuery = new Parse.Query('_User');
-        let userObj = await userQuery.get(user.id);
-        posts[i].set('username', userObj.get('username'));
-    }
     return res.status(200).json({
       message: "Posts retrieved",
       posts: posts,
@@ -173,6 +177,7 @@ const createComment = async (req: Request,res: Response,next: NextFunction) => {
     const commentPointerP = Post.createWithoutData(postId);
     
     comment.set('username', user.get('username'));
+    comment.set("idProfilePicture", user.get("idProfilePicture"));
     comment.set("postId", commentPointerP);
 
     await comment.save();
@@ -197,12 +202,6 @@ const getComment = async (req: Request, res: Response, next: NextFunction) => {
 
     query.equalTo("postId", Post);
     let comments: Parse.Object[] = await query.find();
-    for(let i=0; i<comments.length; i++){
-        let user = comments[i].get('userId');
-        let userQuery = new Parse.Query('_User');
-        let userObj = await userQuery.get(user.id);
-        comments[i].set('username', userObj.get('username'));
-    }
     return res.status(200).json({
       message: "Comments retrieved",
       comments: comments,
@@ -450,5 +449,4 @@ return res.status(500).json({
     }
 
 }
-export default { createUser ,userLogin, createPost, getPost, createComment, getComment,likePost,viewPost,editPost,report, getPollito, patchPollito, likeComment, authSessionToken};
-
+export default { createUser ,userLogin, createPost, getPost, createComment, getComment,likePost,viewPost,editPost,report, getPollito, patchPollito, likeComment, authSessionToken, createPollo};
