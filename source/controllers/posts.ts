@@ -6,9 +6,9 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 //DB CONNECTION
-const appID = "eEslDCIvGEE7ZOQWMdefEC95TG3I6OEPZRFdq5Yw";
-const jsKey = "WEgNdkPY7b42i5gqFje1xE2Zrz2LIxusJclKmHGS";
-const rest = "Vy7B3LylYKlVvOQENcFVYZ8Ur21peB5MGKi1bDau";
+const appID = process.env.APPLICATION_ID;
+const jsKey = process.env.JAVASCRIPT_KEY;
+const rest = process.env.REST_API;
 
 if (appID && jsKey) {
   Parse.initialize(appID, jsKey, rest);
