@@ -18,16 +18,20 @@ if (appID && jsKey) {
 }
 //USER
 interface CreateUserRequest {
-    username: string;
-    password: string;
-    email: string;
-    name: string;
-    nextStage: number;
-  }
+  username: string;
+  password: string;
+  email: string;
+  name: string;
+  nextStage: number;
+}
 
-const createUser = async (req: Request<{}, {}, CreateUserRequest>, res:Response, next: NextFunction) => {
+const createUser = async (
+  req: Request<{}, {}, CreateUserRequest>,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const { username, password, email} = req.body;
+    const { username, password, email } = req.body;
     const User = Parse.Object.extend("_User");
     const user = new User();
     user.set("username", username);
@@ -41,16 +45,20 @@ const createUser = async (req: Request<{}, {}, CreateUserRequest>, res:Response,
     });
   } catch (error) {
     return res.status(500).json({
-        message: 'Internal Server Error',
-      });
+      message: "Internal Server Error",
+    });
   }
 };
 interface UserLoginRequest {
-    username: string;
-    password: string;
-  }
+  username: string;
+  password: string;
+}
 
-const userLogin = async (req: Request<{}, {}, UserLoginRequest>, res: Response, next: NextFunction) => {
+const userLogin = async (
+  req: Request<{}, {}, UserLoginRequest>,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { username, password } = req.body;
     const user = await Parse.User.logIn(username, password);
@@ -59,9 +67,9 @@ const userLogin = async (req: Request<{}, {}, UserLoginRequest>, res: Response, 
     });
   } catch (error) {
     return res.status(500).json({
-        message: 'Internal Server Error',
-      });
-    }
+      message: "Internal Server Error",
+    });
+  }
 };
 
 const authSessionToken = async (
@@ -70,7 +78,7 @@ const authSessionToken = async (
   next: NextFunction
 ) => {
   try {
-    const sessionToken : string = req.params.sessionToken;
+    const sessionToken: string = req.params.sessionToken;
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
     return res.status(200).json({
@@ -94,42 +102,49 @@ const authSessionToken = async (
         error: error,
       });
     }
-  }finally {
+  } finally {
     Parse.User.disableUnsafeCurrentUser();
   }
 };
 
-
 const createPollo = async (req: Request, res: Response, next: NextFunction) => {
-    try{
-        const { sessionToken, name }: { sessionToken: string; name: string } = req.body;
-        const Pollo = Parse.Object.extend("Pollo");
-        const pollo : Parse.Object = new Pollo();
-        const user = await Parse.User.become(sessionToken);
-        pollo.set("name", name);
+  try {
+    const {
+      sessionToken,
+      name,
+      color,
+    }: { sessionToken: string; name: string; color: number } = req.body;
+    const Pollo = Parse.Object.extend("Pollo");
+    const pollo: Parse.Object = new Pollo();
+    const user = await Parse.User.become(sessionToken);
+    pollo.set("name", name);
+    pollo.set("color", color);
 
-        const polloPointer = Pollo.createWithoutData(pollo.id);
-        user.set("pollo", polloPointer);
+    const polloPointer = Pollo.createWithoutData(pollo.id);
+    user.set("pollo", polloPointer);
 
-        await user.save();
-        await pollo.save();
-        return res.status(200).json({
-            message: "New pollo created successfully",
-        });
-    }
-    catch (error) {
-        return res.status(500).json({
-            message: 'Internal Server Error',
-        });
-    }   
-}
+    await user.save();
+    await pollo.save();
+    return res.status(200).json({
+      message: "New pollo created successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+};
 
 const createPost = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { sessionToken, text, title }: { sessionToken: string; text: string; title: string } = req.body;
+    const {
+      sessionToken,
+      text,
+      title,
+    }: { sessionToken: string; text: string; title: string } = req.body;
     const Post = Parse.Object.extend("Post");
     const post = new Post();
-    
+
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
     post.set("text", text);
@@ -142,10 +157,10 @@ const createPost = async (req: Request, res: Response, next: NextFunction) => {
     return res.status(200).json({
       message: "New post created successfully",
     });
-    } catch (error) {
+  } catch (error) {
     return res.status(500).json({
-        message: 'Internal Server Error',
-        });
+      message: "Internal Server Error",
+    });
   }
 };
 
@@ -161,15 +176,22 @@ const getPost = async (req: Request, res: Response, next: NextFunction) => {
     });
   } catch (error) {
     return res.status(500).json({
-        message: 'Internal Server Error',
-      });
+      message: "Internal Server Error",
+    });
   }
 };
 
-
-const createComment = async (req: Request,res: Response,next: NextFunction) => {
+const createComment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const { sessionToken, postId, text }: { sessionToken: string; postId: string; text: string } = req.body;
+    const {
+      sessionToken,
+      postId,
+      text,
+    }: { sessionToken: string; postId: string; text: string } = req.body;
     const Comment = Parse.Object.extend("Comment");
     const comment = new Comment();
 
@@ -179,8 +201,8 @@ const createComment = async (req: Request,res: Response,next: NextFunction) => {
 
     const Post = Parse.Object.extend("Post");
     const commentPointerP = Post.createWithoutData(postId);
-    
-    comment.set('username', user.get('username'));
+
+    comment.set("username", user.get("username"));
     comment.set("idProfilePicture", user.get("idProfilePicture"));
     comment.set("postId", commentPointerP);
 
@@ -188,18 +210,17 @@ const createComment = async (req: Request,res: Response,next: NextFunction) => {
 
     return res.status(200).json({
       message: "New comment created successfully",
-      
     });
   } catch (error) {
-return res.status(500).json({
-      message: 'Internal Server Error',
+    return res.status(500).json({
+      message: "Internal Server Error",
     });
   }
 };
 
 const getComment = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const postId :string  = req.params.postId;
+    const postId: string = req.params.postId;
     const Comment = Parse.Object.extend("Comment");
     const query = new Parse.Query(Comment);
     const queryPost = new Parse.Query("Post");
@@ -213,8 +234,8 @@ const getComment = async (req: Request, res: Response, next: NextFunction) => {
     });
   } catch (error) {
     return res.status(500).json({
-        message: 'Internal Server Error',
-      });
+      message: "Internal Server Error",
+    });
   }
 };
 
@@ -238,39 +259,38 @@ const likePost = async (req: Request, res: Response, next: NextFunction) => {
         message: "Post not found",
       });
     }
-    } catch (error) {
-return res.status(500).json({
-      message: 'Internal Server Error',
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal Server Error",
     });
-    }
+  }
 };
 
 const likeComment = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const commentId = req.params.commentId;
-        const like = parseInt(req.params.like);
-        const query = new Parse.Query('Comment');
-        
-        // Retrieve the post object based on the postId.
-        const post = await query.get(commentId);
-        if (post) {
-            post.increment('nLikes', like);
-            
-            const updatedComment = await post.save();
-            return res.status(200).json({
-                message: 'Comment liked successfully',
-            });
-        } else {
-            return res.status(404).json({
-                message: 'Comment not found',
-            });
-        }
+  try {
+    const commentId = req.params.commentId;
+    const like = parseInt(req.params.like);
+    const query = new Parse.Query("Comment");
 
-    } catch (error){
-return res.status(500).json({
-      message: 'Internal Server Error',
-    });
+    // Retrieve the post object based on the postId.
+    const post = await query.get(commentId);
+    if (post) {
+      post.increment("nLikes", like);
+
+      const updatedComment = await post.save();
+      return res.status(200).json({
+        message: "Comment liked successfully",
+      });
+    } else {
+      return res.status(404).json({
+        message: "Comment not found",
+      });
     }
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
 };
 
 const viewPost = async (req: Request, res: Response, next: NextFunction) => {
@@ -293,8 +313,8 @@ const viewPost = async (req: Request, res: Response, next: NextFunction) => {
       });
     }
   } catch (error) {
-return res.status(500).json({
-      message: 'Internal Server Error',
+    return res.status(500).json({
+      message: "Internal Server Error",
     });
   }
 };
@@ -323,60 +343,60 @@ const editPost = async (req: Request, res: Response, next: NextFunction) => {
         message: "Post not found",
       });
     }
-    } catch (error) {
-return res.status(500).json({
-      message: 'Internal Server Error',
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal Server Error",
     });
-    }
-}
+  }
+};
 
 const report = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const {cause} = req.body;
-        const objId = req.params.objtId; 
-        const type = parseInt(req.params.type);
-        let query; 
-        if (type==0){
-            query = new Parse.Query('Post');
-        }else if(type==1){
-            query = new Parse.Query('Comment');
-        }else{
-            return res.status(404).json({
-                message: 'Type not found',
-            });
-        }
-        const obj = await query.get(objId);
-        if (obj) {
-            obj.set('reported',true)
-            const updatedPost = await obj.save();
-
-            const ReportedPost = Parse.Object.extend('ReportedPost');
-            const reportedPost = new ReportedPost();
-            if (type==0){
-                reportedPost.set('post', obj);
-            }else if(type==1){
-                reportedPost.set('comment', obj);
-            }
-            reportedPost.set('cause', cause);
-            await reportedPost.save();
-            return res.status(200).json({
-                message: 'Reported successfully',
-            });
-        } else {
-            return res.status(404).json({
-                message: 'Object not found',
-            });
-        }
-    } catch (error){
-return res.status(500).json({
-      message: 'Internal Server Error',
-    });
+  try {
+    const { cause } = req.body;
+    const objId = req.params.objtId;
+    const type = parseInt(req.params.type);
+    let query;
+    if (type == 0) {
+      query = new Parse.Query("Post");
+    } else if (type == 1) {
+      query = new Parse.Query("Comment");
+    } else {
+      return res.status(404).json({
+        message: "Type not found",
+      });
     }
-}
+    const obj = await query.get(objId);
+    if (obj) {
+      obj.set("reported", true);
+      const updatedPost = await obj.save();
+
+      const ReportedPost = Parse.Object.extend("ReportedPost");
+      const reportedPost = new ReportedPost();
+      if (type == 0) {
+        reportedPost.set("post", obj);
+      } else if (type == 1) {
+        reportedPost.set("comment", obj);
+      }
+      reportedPost.set("cause", cause);
+      await reportedPost.save();
+      return res.status(200).json({
+        message: "Reported successfully",
+      });
+    } else {
+      return res.status(404).json({
+        message: "Object not found",
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+};
 
 const reportPost = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const postId : string = req.params.postId; // Assuming you have a postId parameter in the URL
+    const postId: string = req.params.postId; // Assuming you have a postId parameter in the URL
     const query = new Parse.Query("Post");
     // Retrieve the post object based on the postId.
     const post = await query.get(postId);
@@ -400,15 +420,15 @@ const reportPost = async (req: Request, res: Response, next: NextFunction) => {
       });
     }
   } catch (error) {
-return res.status(500).json({
-      message: 'Internal Server Error',
+    return res.status(500).json({
+      message: "Internal Server Error",
     });
   }
 };
 
 const getPollito = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const polloId : string  = req.params.polloId; //
+    const polloId: string = req.params.polloId; //
 
     const query = new Parse.Query("Pollo"); //Pollo
     const pollito = await query.get(polloId);
@@ -418,7 +438,7 @@ const getPollito = async (req: Request, res: Response, next: NextFunction) => {
     });
   } catch (error) {
     return res.status(500).json({
-      message: 'Internal Server Error',
+      message: "Internal Server Error",
     });
   }
 };
@@ -447,11 +467,26 @@ const patchPollito = async (
         message: "Pollo not found",
       });
     }
-    } catch (error) {
-return res.status(500).json({
-      message: 'Internal Server Error',
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal Server Error",
     });
-    }
-
-}
-export default { createUser ,userLogin, createPost, getPost, createComment, getComment,likePost,viewPost,editPost,report, getPollito, patchPollito, likeComment, authSessionToken, createPollo};
+  }
+};
+export default {
+  createUser,
+  userLogin,
+  createPost,
+  getPost,
+  createComment,
+  getComment,
+  likePost,
+  viewPost,
+  editPost,
+  report,
+  getPollito,
+  patchPollito,
+  likeComment,
+  authSessionToken,
+  createPollo,
+};
