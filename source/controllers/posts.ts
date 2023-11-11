@@ -128,6 +128,7 @@ const createPollo = async (req: Request, res: Response, next: NextFunction) => {
     await user.save();
     return res.status(200).json({
       message: "New pollo created successfully",
+      pollo: pollo,
     });
   } catch (error) {
     return res.status(500).json({
