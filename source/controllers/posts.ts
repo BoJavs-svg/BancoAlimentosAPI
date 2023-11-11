@@ -109,17 +109,22 @@ const authSessionToken = async (
 
 const createPollo = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { name, color }: { name: string; color: number } = req.body;
+    const {
+      sessionToken,
+      name,
+      color,
+    }: { sessionToken: string; name: string; color: number } = req.body;
     const Pollo = Parse.Object.extend("Pollo");
     const pollo: Parse.Object = new Pollo();
-    const user = Parse.User.current();
+    Parse.User.enableUnsafeCurrentUser();
+    const user = await Parse.User.become(sessionToken);
     pollo.set("name", name);
     pollo.set("color", color);
 
     const polloPointer = Pollo.createWithoutData(pollo.id);
-    user?.set("pollo", polloPointer);
+    user.set("pollo", polloPointer);
 
-    await user?.save();
+    await user.save();
     await pollo.save();
     return res.status(200).json({
       message: "New pollo created successfully",
