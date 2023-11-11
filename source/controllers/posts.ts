@@ -121,17 +121,17 @@ const createPollo = async (req: Request, res: Response, next: NextFunction) => {
     pollo.set("name", name);
     pollo.set("color", color);
 
-    const polloPointer = Pollo.createWithoutData(pollo.id);
-    user.set("pollo", polloPointer);
+    await pollo.save().then((res) => {
+      user.set("pollo", res);
+    });
 
     await user.save();
-    await pollo.save();
     return res.status(200).json({
       message: "New pollo created successfully",
     });
   } catch (error) {
     return res.status(500).json({
-      message: "Internal Server Error",
+      message: error,
     });
   }
 };
