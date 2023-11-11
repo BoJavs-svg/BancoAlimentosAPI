@@ -131,7 +131,7 @@ const createPollo = async (req: Request, res: Response, next: NextFunction) => {
     });
   } catch (error) {
     return res.status(500).json({
-      message: "Internal Server Error",
+      message: error,
     });
   }
 };
