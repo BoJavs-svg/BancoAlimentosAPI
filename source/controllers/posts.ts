@@ -6,9 +6,9 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 //DB CONNECTION
-const appID = process.env.APPLICATION_ID;
-const jsKey = process.env.JAVASCRIPT_KEY;
-const rest = process.env.REST_API;
+const appID = "eEslDCIvGEE7ZOQWMdefEC95TG3I6OEPZRFdq5Yw";
+const jsKey = "WEgNdkPY7b42i5gqFje1xE2Zrz2LIxusJclKmHGS";
+const rest = "Vy7B3LylYKlVvOQENcFVYZ8Ur21peB5MGKi1bDau";
 
 if (appID && jsKey) {
   Parse.initialize(appID, jsKey, rest);
@@ -110,28 +110,27 @@ const authSessionToken = async (
 const createPollo = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const {
-      sessionToken,
+      objectId,
       name,
       color,
-    }: { sessionToken: string; name: string; color: number } = req.body;
+    }: { objectId: string; name: string; color: number } = req.body;
     const Pollo = Parse.Object.extend("Pollo");
     const pollo: Parse.Object = new Pollo();
-    Parse.User.disableUnsafeCurrentUser();
-    const user = await Parse.User.become(sessionToken);
+    const user = Parse.User.current();
     pollo.set("name", name);
     pollo.set("color", color);
 
     const polloPointer = Pollo.createWithoutData(pollo.id);
-    user.set("pollo", polloPointer);
+    user?.set("pollo", polloPointer);
 
-    await user.save();
+    await user?.save();
     await pollo.save();
     return res.status(200).json({
       message: "New pollo created successfully",
     });
   } catch (error) {
     return res.status(500).json({
-      message: error,
+      message: "Internal Server Error",
     });
   }
 };
