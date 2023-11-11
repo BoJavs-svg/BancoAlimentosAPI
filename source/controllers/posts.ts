@@ -109,11 +109,7 @@ const authSessionToken = async (
 
 const createPollo = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const {
-      objectId,
-      name,
-      color,
-    }: { objectId: string; name: string; color: number } = req.body;
+    const { name, color }: { name: string; color: number } = req.body;
     const Pollo = Parse.Object.extend("Pollo");
     const pollo: Parse.Object = new Pollo();
     const user = Parse.User.current();
