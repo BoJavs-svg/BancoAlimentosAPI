@@ -116,6 +116,7 @@ const createPollo = async (req: Request, res: Response, next: NextFunction) => {
     }: { sessionToken: string; name: string; color: number } = req.body;
     const Pollo = Parse.Object.extend("Pollo");
     const pollo: Parse.Object = new Pollo();
+    Parse.User.disableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
     pollo.set("name", name);
     pollo.set("color", color);
