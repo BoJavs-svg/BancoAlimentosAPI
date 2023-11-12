@@ -11,11 +11,11 @@ router.get("/authSessionToken/:sessionToken", controller.authSessionToken);
 router.get("/resetPassword", controller.resetPassword);
 router.get("/deleteUser", controller.deleteUser);
 
-router.post('/userSignUp', controller.createUser);//
-router.post('/userLogin', controller.userLogin);//
+router.post('/userSignUp', controller.createUser);
+router.post('/userLogin', controller.userLogin);
 router.post('/post', controller.createPost);
 router.post('/comment', controller.createComment);
-router.post('/pollo', controller.createPollo);//
+router.post('/pollo', controller.createPollo);
 
 router.patch('/likePost/:postId/:like', controller.likePost);
 router.patch('/likeComment/:commentId/:like', controller.likeComment);
