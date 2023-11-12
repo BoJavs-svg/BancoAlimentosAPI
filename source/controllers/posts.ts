@@ -8,10 +8,8 @@ dotenv.config();
 //DB CONNECTION
 const appID = process.env.APPLICATION_ID;
 const jsKey = process.env.JAVASCRIPT_KEY;
-const rest = process.env.REST_API;
-
 if (appID && jsKey) {
-  Parse.initialize(appID, jsKey, rest);
+  Parse.initialize(appID, jsKey);
   Parse.serverURL = "https://parseapi.back4app.com/";
 } else {
   console.log("No Parse error");
@@ -37,6 +35,7 @@ const createUser = async (req: Request<{}, {}, CreateUserRequest>, res:Response,
 
     return res.status(200).json({
       message: "New object created successfully",
+      user:user,
     });
   } catch (error) {
     return res.status(500).json({
@@ -94,7 +93,7 @@ const authSessionToken = async (
       });
     }
   }finally {
-    Parse.User.disableUnsafeCurrentUser();
+    // Parse.User.disableUnsafeCurrentUser();
   }
 };
 
@@ -102,8 +101,10 @@ const authSessionToken = async (
 const createPollo = async (req: Request, res: Response, next: NextFunction) => {
     try{
         const { sessionToken, name }: { sessionToken: string; name: string } = req.body;
+        
         const Pollo = Parse.Object.extend("Pollo");
         const pollo : Parse.Object = new Pollo();
+        Parse.User.enableUnsafeCurrentUser();
         const user = await Parse.User.become(sessionToken);
         pollo.set("name", name);
 
@@ -118,7 +119,7 @@ const createPollo = async (req: Request, res: Response, next: NextFunction) => {
     }
     catch (error) {
         return res.status(500).json({
-            message: 'Internal Server Error',
+            message: error,
         });
     }   
 }
@@ -129,7 +130,7 @@ const createPost = async (req: Request, res: Response, next: NextFunction) => {
     const { sessionToken, text, title }: { sessionToken: string; text: string; title: string } = req.body;
     const Post = Parse.Object.extend("Post");
     const post = new Post();
-    
+    Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
     post.set("text", text);
     post.set("title", title);
@@ -452,4 +453,34 @@ return res.status(500).json({
     }
 
 }
-export default { createUser ,userLogin, createPost, getPost, createComment, getComment,likePost,viewPost,editPost,report, getPollito, patchPollito, likeComment, authSessionToken, createPollo};
+
+const resetPassword = async (  req: Request,  res: Response,  next: NextFunction) => {
+  try {
+    const { email } = req.body;
+    await Parse.User.requestPasswordReset(email);
+    return res.status(200).json({
+      message: "Email sent",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Internal Server Error',
+    });
+  }  
+
+}
+const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { sessionToken } = req.body;
+    Parse.User.enableUnsafeCurrentUser();
+    const user = await Parse.User.become(sessionToken);
+    await user.destroy();
+    return res.status(200).json({
+      message: "User deleted",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Internal Server Error',
+    });
+  }
+};
+export default { createUser ,userLogin, createPost, getPost, createComment, getComment,likePost,viewPost,editPost,report, getPollito, patchPollito, likeComment, authSessionToken, createPollo, resetPassword, deleteUser};
