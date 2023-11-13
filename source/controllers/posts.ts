@@ -460,6 +460,7 @@ const patchPollito = async (
       const updatedPollo = await pollo.save();
       return res.status(200).json({
         message: "Pollito changed successfully",
+        pollo: updatedPollo,
       });
     } else {
       return res.status(404).json({
