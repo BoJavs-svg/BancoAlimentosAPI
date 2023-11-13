@@ -6,8 +6,8 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 //DB CONNECTION
-const appID = process.env.APPLICATION_ID;
-const jsKey = process.env.JAVASCRIPT_KEY;
+const appID = "eEslDCIvGEE7ZOQWMdefEC95TG3I6OEPZRFdq5Yw";
+const jsKey = "WEgNdkPY7b42i5gqFje1xE2Zrz2LIxusJclKmHGS";
 if (appID && jsKey) {
   Parse.initialize(appID, jsKey);
   Parse.serverURL = "https://parseapi.back4app.com/";
@@ -520,13 +520,6 @@ const nextStagePollito = async (
     if (pollo) {
       pollo.set("nextStage", nextStage);
       var updatedPollo = await pollo.save();
-
-      if (nextStage <= 0) {
-        pollo.set("nEggs", updatedPollo.toJSON().nEggs + 1);
-        const nextStageRandom = Math.floor(Math.random() * 5) + 2;
-        pollo.set("nextStage", nextStageRandom);
-        updatedPollo = await pollo.save();
-      }
 
       return res.status(200).json({
         message: "Pollito changed successfully",
