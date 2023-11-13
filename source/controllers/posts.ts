@@ -100,7 +100,7 @@ const authSessionToken = async (
         error: error,
       });
     }
-  }finally {
+  } finally {
     // Parse.User.disableUnsafeCurrentUser();
   }
 };
@@ -471,11 +471,110 @@ const patchPollito = async (
     return res.status(500).json({
       message: "Internal Server Error",
     });
+  }
+};
+
+const nextApplePollito = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  //
+  try {
+    //Get body from endpoint call
+    const polloId = req.params.polloId;
+    const { nextApple } = req.body;
+    const query = new Parse.Query("Pollo");
+    console.log("Get");
+    const pollo = await query.get(polloId);
+    if (pollo) {
+      pollo.set("nextApple", nextApple);
+      const updatedPollo = await pollo.save();
+      return res.status(200).json({
+        message: "Pollito changed successfully",
+        pollo: updatedPollo,
+      });
+    } else {
+      return res.status(404).json({
+        message: "Pollo not found",
+      });
     }
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+};
 
-}
+const nextStagePollito = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const polloId = req.params.polloId;
+    const { nextStage } = req.body;
+    const query = new Parse.Query("Pollo");
+    console.log("Get");
+    const pollo = await query.get(polloId);
+    if (pollo) {
+      pollo.set("nextStage", nextStage);
+      var updatedPollo = await pollo.save();
 
-const resetPassword = async (  req: Request,  res: Response,  next: NextFunction) => {
+      if (nextStage <= 0) {
+        pollo.set("nEggs", updatedPollo.toJSON().nEggs + 1);
+        const nextStageRandom = Math.floor(Math.random() * 5) + 2;
+        pollo.set("nextStage", nextStageRandom);
+        updatedPollo = await pollo.save();
+      }
+
+      return res.status(200).json({
+        message: "Pollito changed successfully",
+        pollo: updatedPollo,
+      });
+    } else {
+      return res.status(404).json({
+        message: "Pollo not found",
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+};
+
+const eggPollito = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const polloId = req.params.polloId;
+    const { nEggs } = req.body;
+    const query = new Parse.Query("Pollo");
+    console.log("Get");
+    const pollo = await query.get(polloId);
+    if (pollo) {
+      pollo.set("nEggs", nEggs);
+      const updatedPollo = await pollo.save();
+      return res.status(200).json({
+        message: "Pollito changed successfully",
+        pollo: updatedPollo,
+      });
+    } else {
+      return res.status(404).json({
+        message: "Pollo not found",
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+};
+
+const resetPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { email } = req.body;
     await Parse.User.requestPasswordReset(email);
@@ -484,11 +583,10 @@ const resetPassword = async (  req: Request,  res: Response,  next: NextFunction
     });
   } catch (error) {
     return res.status(500).json({
-      message: 'Internal Server Error',
+      message: "Internal Server Error",
     });
-  }  
-
-}
+  }
+};
 const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { sessionToken } = req.body;
@@ -500,8 +598,29 @@ const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
     });
   } catch (error) {
     return res.status(500).json({
-      message: 'Internal Server Error',
+      message: "Internal Server Error",
     });
   }
 };
-export default { createUser ,userLogin, createPost, getPost, createComment, getComment,likePost,viewPost,editPost,report, getPollito, patchPollito, likeComment, authSessionToken, createPollo, resetPassword, deleteUser};
+export default {
+  createUser,
+  userLogin,
+  createPost,
+  getPost,
+  createComment,
+  getComment,
+  likePost,
+  viewPost,
+  editPost,
+  report,
+  nextStagePollito,
+  getPollito,
+  patchPollito,
+  eggPollito,
+  nextApplePollito,
+  likeComment,
+  authSessionToken,
+  createPollo,
+  resetPassword,
+  deleteUser,
+};
