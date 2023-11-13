@@ -518,7 +518,9 @@ const nextStagePollito = async (
     console.log("Get");
     const pollo = await query.get(polloId);
     if (pollo) {
-      pollo.set("nextStage", nextStage);
+      const nextStageRandom = Math.floor(Math.random() * 5) + 2;
+
+      pollo.set("nextStage", nextStage <= 0 ? nextStageRandom : nextStage);
       var updatedPollo = await pollo.save();
 
       return res.status(200).json({
