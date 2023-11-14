@@ -419,38 +419,6 @@ const report = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-const reportPost = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const postId: string = req.params.postId; // Assuming you have a postId parameter in the URL
-    const query = new Parse.Query("Post");
-    // Retrieve the post object based on the postId.
-    const post = await query.get(postId);
-    if (post) {
-      post.set("reported", true);
-      const updatedPost = await post.save();
-
-      const ReportedPost = Parse.Object.extend("ReportedPost");
-      const reportedPost = new ReportedPost();
-
-      reportedPost.set("post", post);
-      // Save the reported post
-      await reportedPost.save();
-
-      return res.status(200).json({
-        message: "Post reported successfully",
-      });
-    } else {
-      return res.status(404).json({
-        message: "Post not found",
-      });
-    }
-  } catch (error) {
-    return res.status(500).json({
-      message: "Internal Server Error",
-    });
-  }
-};
-
 const getPollito = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const polloId: string = req.params.polloId; //
