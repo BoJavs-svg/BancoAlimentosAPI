@@ -4,7 +4,7 @@ import controller from "../controllers/posts";
 const router = express.Router();
 //User
 
-router.get("/getPosts/:sessionToken", controller.getPost);
+router.get("/getPosts", controller.getPost);
 router.get("/getComments/:postId", controller.getComment);
 router.get("/getPollito/:polloId", controller.getPollito);
 router.get("/authSessionToken/:sessionToken", controller.authSessionToken);

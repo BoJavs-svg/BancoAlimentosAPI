@@ -171,7 +171,7 @@ const getPost = async (req: Request, res: Response, next: NextFunction) => {
     // Save objects returned from find query
     let posts: Parse.Object[] = await parseQuery.find();
 
-    const sessionToken: string = req.params.sessionToken;
+    const sessionToken: string = req.headers.authorization ?? "";
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
 
@@ -260,6 +260,20 @@ const likePost = async (req: Request, res: Response, next: NextFunction) => {
     const post = await query.get(postId);
     if (post) {
       post.increment("nLikes", like);
+
+      const sessionToken: string = req.headers.authorization ?? "";
+      Parse.User.enableUnsafeCurrentUser();
+      const user = await Parse.User.become(sessionToken);
+
+      var usersLiked = post.toJSON().usersLiked;
+
+      if (like > 0 && !usersLiked.includes(user.id)) {
+        usersLiked.push(user.id);
+      } else if (like < 0 && usersLiked.includes(user.id)) {
+        const index = usersLiked.indexOf(user.id);
+        usersLiked.splice(index, 1);
+      }
+      post.set("usersLiked", usersLiked);
 
       const updatedPost = await post.save();
       return res.status(200).json({
