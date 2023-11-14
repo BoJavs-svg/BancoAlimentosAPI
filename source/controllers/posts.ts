@@ -6,10 +6,11 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 //DB CONNECTION
-const appID = "eEslDCIvGEE7ZOQWMdefEC95TG3I6OEPZRFdq5Yw";
-const jsKey = "WEgNdkPY7b42i5gqFje1xE2Zrz2LIxusJclKmHGS";
+const appID = process.env.APPLICATION_ID;
+const jsKey = process.env.JAVASCRIPT_KEY;
+const rest = process.env.REST_API;
 if (appID && jsKey) {
-  Parse.initialize(appID, jsKey);
+  Parse.initialize(appID, jsKey, rest);
   Parse.serverURL = "https://parseapi.back4app.com/";
 } else {
   console.log("No Parse error");
@@ -169,9 +170,21 @@ const getPost = async (req: Request, res: Response, next: NextFunction) => {
     const parseQuery = new Parse.Query("Post");
     // Save objects returned from find query
     let posts: Parse.Object[] = await parseQuery.find();
+
+    const sessionToken: string = req.params.sessionToken;
+    Parse.User.enableUnsafeCurrentUser();
+    const user = await Parse.User.become(sessionToken);
+
+    const newPosts = posts.map((post): any => {
+      return {
+        ...post.toJSON(),
+        isliked: post.toJSON().usersLiked.includes(user.id),
+      };
+    });
+
     return res.status(200).json({
       message: "Posts retrieved",
-      posts: posts,
+      posts: newPosts,
     });
   } catch (error) {
     return res.status(500).json({
@@ -195,7 +208,6 @@ const createComment = async (
     const comment = new Comment();
 
     const user = await Parse.User.become(sessionToken);
-    //Set properties of the object Comment
     comment.set("text", text);
 
     const Post = Parse.Object.extend("Post");
