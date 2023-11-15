@@ -378,7 +378,7 @@ const editPost = async (req: Request, res: Response, next: NextFunction) => {
 const report = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { cause } = req.body;
-    const objId = req.params.objtId;
+    const objId = req.params.objId;
     const type = parseInt(req.params.type);
     let query;
     if (type == 0) {

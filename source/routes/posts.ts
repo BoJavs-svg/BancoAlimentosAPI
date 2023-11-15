@@ -21,7 +21,7 @@ router.patch("/likePost/:postId/:like", controller.likePost);
 router.patch("/likeComment/:commentId/:like", controller.likeComment);
 router.patch("/view/:postId", controller.viewPost);
 router.patch("/editPost/:postId", controller.editPost);
-router.patch("/report/:postId/:type", controller.report);
+router.patch("/report/:objId/:type", controller.report);
 router.patch("/patchPollito/:polloId", controller.patchPollito);
 router.patch("/nextApple/:polloId", controller.nextApplePollito);
 router.patch("/nextStagePollito/:polloId", controller.nextStagePollito);
