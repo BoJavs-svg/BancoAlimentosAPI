@@ -591,6 +591,38 @@ const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
     });
   }
 };
+
+const profileBadge = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const badgeIndex = parseInt(req.params.index);
+    const sessionToken: string = req.headers.authorization ?? "";
+    Parse.User.enableUnsafeCurrentUser();
+    const user = await Parse.User.become(sessionToken);
+
+    if (user) {
+      user.set("visBadge", badgeIndex);
+      const updatedUser = await user.save();
+      console.log("user found");
+      return res.status(200).json({
+        message: "Badge changed changed successfully",
+        user: updatedUser,
+      });
+    } else {
+      return res.status(404).json({
+        message: "Pollo not found",
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+};
+
 export default {
   createUser,
   userLogin,
@@ -612,4 +644,5 @@ export default {
   createPollo,
   resetPassword,
   deleteUser,
+  profileBadge,
 };

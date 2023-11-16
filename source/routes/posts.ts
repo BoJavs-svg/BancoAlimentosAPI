@@ -26,5 +26,6 @@ router.patch("/patchPollito/:polloId", controller.patchPollito);
 router.patch("/nextApple/:polloId", controller.nextApplePollito);
 router.patch("/nextStagePollito/:polloId", controller.nextStagePollito);
 router.patch("/eggPollito/:polloId", controller.eggPollito);
+router.patch("/profileBadge/:index", controller.profileBadge);
 
 export = router;
