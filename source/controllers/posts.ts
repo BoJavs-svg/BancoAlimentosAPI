@@ -537,19 +537,37 @@ const eggPollito = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const polloId = req.params.polloId;
     const { nEggs } = req.body;
+
+    const sessionToken: string = req.headers.authorization ?? "";
+    Parse.User.enableUnsafeCurrentUser();
+    const user = await Parse.User.become(sessionToken);
+
     const query = new Parse.Query("Pollo");
-    console.log("Get");
-    const pollo = await query.get(polloId);
-    if (pollo) {
+    const pollo = await query.get(user.toJSON().pollo.objectId);
+
+    if (pollo && user) {
+      const userBadges: any[] = user.toJSON().badges;
       pollo.set("nEggs", nEggs);
       const updatedPollo = await pollo.save();
+
+      var randombadge = -1;
+      while (userBadges.includes(randombadge) || randombadge == -1) {
+        randombadge = Math.floor(Math.random() * 28);
+      }
+
+      userBadges.push(randombadge);
+      user.set("badges", userBadges);
+      const updatedUser = await user.save();
+
       return res.status(200).json({
         message: "Pollito changed successfully",
         pollo: updatedPollo,
+        user: updatedUser,
+        badge: randombadge,
       });
     } else {
       return res.status(404).json({
-        message: "Pollo not found",
+        message: "Pollo or user not found",
       });
     }
   } catch (error) {
