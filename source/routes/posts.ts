@@ -9,6 +9,7 @@ router.post("/userLogin", controller.userLogin);//
 router.patch("/profileBadge/:index", controller.profileBadge);//
 router.get("/resetPassword", controller.resetPassword);//
 router.get("/deleteUser", controller.deleteUser);//
+router.patch("/profileBadge/:index", controller.profileBadge);
 
 //Post
 router.post("/post", controller.createPost);//
@@ -31,7 +32,7 @@ router.post("/pollo", controller.createPollo);
 router.patch("/patchPollito/:polloId", controller.patchPollito);
 router.patch("/nextApple/:polloId", controller.nextApplePollito);
 router.patch("/nextStagePollito/:polloId", controller.nextStagePollito);
-router.patch("/eggPollito/:polloId", controller.eggPollito);
+router.patch("/eggPollito", controller.eggPollito);
 // router.patch("/deletePollito/:polloId", controller.deletePollito);
 
 export = router;

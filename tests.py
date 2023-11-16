@@ -173,9 +173,8 @@ class TestAPIEndpoints(unittest.TestCase):
         response = requests.patch(url, headers=self.headers, json=body)
         self.assertEqual(response.status_code, 200)
     def test_20_eggPollito(self):
-        # router.patch("/eggPollito/:polloId", controller.eggPollito);
-        pollo= self.polloId
-        url = self.base_url + "/eggPollito/"+pollo
+        # router.patch("/eggPollito", controller.eggPollito);
+        url = self.base_url + "/eggPollito"
         body = {
             "nEggs": 1,
         }
