@@ -591,7 +591,39 @@ const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
     });
   }
 };
+
+const createBadge = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId: string = req.params.userId;
+    const badge: number = parseInt(req.params.badge);
+    const query = new Parse.Query("User");
+    
+    Parse.User.enableUnsafeCurrentUser();
+    
+    const user = await query.get(userId);
+    if(user) {
+      const badges = user.get("badges") || [];
+      badges.push(badge);
+      user.set('badges', badges);
+
+      const updatedUser = await user.save();
+      return res.status(200).json({
+        message: "Badge added successfully"
+      });
+    } else {
+      return res.status(400).json({
+        message: "Internal Server Error",
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+}
+
 export default {
+  createBadge,
   createUser,
   userLogin,
   createPost,
