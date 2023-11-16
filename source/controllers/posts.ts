@@ -130,8 +130,9 @@ const createPollo = async (req: Request, res: Response, next: NextFunction) => {
       pollo: pollo,
     });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({
-      message: error,
+      message: "Internal Server Error",
     });
   }
 };
@@ -189,6 +190,7 @@ const getPost = async (req: Request, res: Response, next: NextFunction) => {
   } catch (error) {
     return res.status(500).json({
       message: "Internal Server Error",
+      error: error,
     });
   }
 };
@@ -285,6 +287,7 @@ const likePost = async (req: Request, res: Response, next: NextFunction) => {
       });
     }
   } catch (error) {
+
     return res.status(500).json({
       message: "Internal Server Error",
     });
@@ -447,7 +450,6 @@ const patchPollito = async (
     const polloId = req.params.polloId;
     const { nApple } = req.body;
     const query = new Parse.Query("Pollo");
-    console.log("Get");
     const pollo = await query.get(polloId);
     if (pollo) {
       pollo.set("nApple", nApple);
@@ -479,7 +481,7 @@ const nextApplePollito = async (
     const polloId = req.params.polloId;
     const { nextApple } = req.body;
     const query = new Parse.Query("Pollo");
-    console.log("Get");
+
     const pollo = await query.get(polloId);
     if (pollo) {
       pollo.set("nextApple", nextApple);
@@ -509,7 +511,6 @@ const nextStagePollito = async (
     const polloId = req.params.polloId;
     const { nextStage } = req.body;
     const query = new Parse.Query("Pollo");
-    console.log("Get");
     const pollo = await query.get(polloId);
     if (pollo) {
       const nextStageRandom = Math.floor(Math.random() * 5) + 2;
@@ -538,7 +539,6 @@ const eggPollito = async (req: Request, res: Response, next: NextFunction) => {
     const polloId = req.params.polloId;
     const { nEggs } = req.body;
     const query = new Parse.Query("Pollo");
-    console.log("Get");
     const pollo = await query.get(polloId);
     if (pollo) {
       pollo.set("nEggs", nEggs);
