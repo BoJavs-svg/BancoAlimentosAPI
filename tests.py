@@ -186,6 +186,16 @@ class TestAPIEndpoints(unittest.TestCase):
         url = self.base_url + "/badgeCreate/" + "2" 
         response = requests.patch(url, headers=self.headers)
         self.assertEqual(response.status_code, 200)
+
+    def test_22_editarPerfil(self):
+        url = self.base_url + "/editarPerfil"
+        response = requests.patch(url, headers=self.headers)
+        body = {
+            "colorProfilePicture": 2,
+            "idProfilePicture": 4
+        }
+        
+        self.assertEqual(response.status_code, 200);
     
 
 

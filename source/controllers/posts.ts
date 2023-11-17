@@ -624,7 +624,6 @@ const profileBadge = async (
     if (user) {
       user.set("visBadge", badgeIndex);
       const updatedUser = await user.save();
-      console.log("user found");
       return res.status(200).json({
         message: "Badge changed changed successfully",
         user: updatedUser,
@@ -675,7 +674,39 @@ const createBadge = async (
   }
 }
 
+const editarPerfil = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    
+    const color: number = parseInt(req.body.colorProfilePicture);
+    const idProfilePicture: number = parseInt(req.body.idProfilePicture);
+    const sessionToken: string = req.headers.authorization ?? "";
+    
+    Parse.User.enableUnsafeCurrentUser();
+    
+    const user = await Parse.User.become(sessionToken);
+    
+    if(user) {
+      user.set("colorProfilePicture", color);
+      user.set("idProfilePicture", idProfilePicture); 
+      const updatedUser = await user.save();
+      return res.status(200).json({
+        message: "Color preferences saved",
+        user: updatedUser,
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal Server Error",
+    }); 
+  }
+}
+
 export default {
+  editarPerfil,
   createBadge,
   createUser,
   userLogin,
