@@ -592,15 +592,24 @@ const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-const createBadge = async (req: Request, res: Response, next: NextFunction) => {
+
+
+const createBadge = async (
+  req: Request,
+  res: Response, 
+  next: NextFunction
+) => {
   try {
-    const userId: string = req.params.userId;
     const badge: number = parseInt(req.params.badge);
-    const query = new Parse.Query("User");
+    const sessionToken: string = req.headers.authorization ?? "";
     
     Parse.User.enableUnsafeCurrentUser();
+
+    console.log("entro");
     
-    const user = await query.get(userId);
+    const user = await Parse.User.become(sessionToken);
+    console.log("found" );
+
     if(user) {
       const badges = user.get("badges") || [];
       badges.push(badge);
@@ -611,8 +620,8 @@ const createBadge = async (req: Request, res: Response, next: NextFunction) => {
         message: "Badge added successfully"
       });
     } else {
-      return res.status(400).json({
-        message: "Internal Server Error",
+      return res.status(404).json({
+        message: "User not found",
       });
     }
   } catch (error) {
