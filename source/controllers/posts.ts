@@ -641,7 +641,42 @@ const profileBadge = async (
   }
 };
 
+const createBadge = async (
+  req: Request,
+  res: Response, 
+  next: NextFunction
+) => {
+  try {
+    const badge: number = parseInt(req.params.badge);
+    const sessionToken: string = req.headers.authorization ?? "";
+
+    Parse.User.enableUnsafeCurrentUser();
+
+    const user = await Parse.User.become(sessionToken);
+
+    if(user) {
+      const badges = user.get("badges") || [];
+      badges.push(badge);
+      user.set('badges', badges);
+
+      const updatedUser = await user.save();
+      return res.status(200).json({
+        message: "Badge added successfully"
+      });
+    } else {
+      return res.status(400).json({
+        message: "User not found",
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+}
+
 export default {
+  createBadge,
   createUser,
   userLogin,
   createPost,
