@@ -187,8 +187,8 @@ class TestAPIEndpoints(unittest.TestCase):
         response = requests.patch(url, headers=self.headers)
         self.assertEqual(response.status_code, 200)
 
-    def test_22_editarPerfil(self):
-        url = self.base_url + "/editarPerfil"
+    def test_22_changeProfile(self):
+        url = self.base_url + "/changeProfile"
         response = requests.patch(url, headers=self.headers)
         body = {
             "colorProfilePicture": 2,
