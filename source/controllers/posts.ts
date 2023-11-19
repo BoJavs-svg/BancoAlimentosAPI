@@ -691,7 +691,7 @@ const profileChange = async (
   next: NextFunction
 ) => {
   try {
-    const color: string = req.body.colorProfilePicture;
+    const colorProfilePicture: number = parseInt(req.body.colorProfilePicture);
     const idProfilePicture: number = parseInt(req.body.idProfilePicture);
     const sessionToken: string = req.headers.authorization ?? "";
 
@@ -700,7 +700,7 @@ const profileChange = async (
     const user = await Parse.User.become(sessionToken);
 
     if (user) {
-      user.set("colorProfilePicture", color);
+      user.set("colorProfilePicture", colorProfilePicture);
       user.set("idProfilePicture", idProfilePicture);
       const updatedUser = await user.save();
       return res.status(200).json({
