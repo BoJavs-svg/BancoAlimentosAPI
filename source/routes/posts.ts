@@ -11,7 +11,7 @@ router.get("/resetPassword", controller.resetPassword); //
 router.get("/deleteUser", controller.deleteUser); //
 router.patch("/profileBadge/:index", controller.profileBadge);
 router.patch("/badgeCreate/:badge", controller.createBadge);
-router.patch("/editarPerfil/", controller.editarPerfil);
+router.patch("/changeProfile/", controller.profileChange);
 router.get("/getUserPosts", controller.getUserPosts);
 
 //Post
