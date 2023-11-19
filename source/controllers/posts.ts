@@ -38,7 +38,7 @@ const createUser = async (
     user.set("email", email);
     await user.signUp();
 
-    return res.status(200).json({
+    return res.status(201).json({
       message: "New object created successfully",
       user: user,
     });
@@ -53,21 +53,37 @@ interface UserLoginRequest {
   password: string;
 }
 
-const userLogin = async (
-  req: Request<{}, {}, UserLoginRequest>,
-  res: Response,
-  next: NextFunction
-) => {
+const userLogin = async (req: Request, res: Response, next: NextFunction) => {
+  console.log("Help")
   try {
-    const { username, password } = req.body;
-    const user = await Parse.User.logIn(username, password);
-    return res.status(200).json({
-      user: user,
-    });
+      const { username, password, usePost, checkValue } = req.body;
+
+      // Fetch the user from the database based on the username
+      const query = new Parse.Query(Parse.User);
+      query.equalTo('username', username);
+      const user = await query.first();
+
+      console.log("HERE")
+
+      console.log(user?.get('emailVerified'))
+
+      // Check if the user exists and if the checkValue matches the value in the database
+      if (user && user.get('emailVerified')) {
+          // Use the additional parameter in the login method
+          const loggedInUser = await Parse.User.logIn(username, password, { usePost: usePost });
+
+          return res.status(200).json({
+              user: loggedInUser,
+          });
+      } else {
+          return res.status(401).json({
+              message: 'Invalid credentials or checkValue mismatch',
+          });
+      }
   } catch (error) {
-    return res.status(500).json({
-      message: "Internal Server Error",
-    });
+      return res.status(500).json({
+          message: error,
+      });
   }
 };
 
@@ -594,6 +610,7 @@ const resetPassword = async (
     });
   }
 };
+
 const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { sessionToken } = req.body;
@@ -641,6 +658,25 @@ const profileBadge = async (
   }
 };
 
+const verificationEmail = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = await Parse.User.currentAsync();
+    if (user) {
+      // Call Cloud Function to send email verification
+      await Parse.Cloud.run('sendVerificationEmail');
+      console.log('Email verification request sent successfully');
+    }
+    return res.status(200).json({
+      message: 'Email verification request sent successfully',
+    });
+  } catch (error: any) {
+    console.error('Error sending email verification request:', error.message);
+    return res.status(500).json({
+      message: 'Internal Server Error',
+    });
+  }
+};
+
 export default {
   createUser,
   userLogin,
@@ -663,4 +699,5 @@ export default {
   resetPassword,
   deleteUser,
   profileBadge,
+  verificationEmail
 };

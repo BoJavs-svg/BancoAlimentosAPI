@@ -8,6 +8,7 @@ router.get("/authSessionToken/:sessionToken", controller.authSessionToken);//
 router.post("/userLogin", controller.userLogin);//
 router.patch("/profileBadge/:index", controller.profileBadge);//
 router.get("/resetPassword", controller.resetPassword);//
+router.get("/verificationEmail", controller.verificationEmail);//
 router.get("/deleteUser", controller.deleteUser);//
 router.patch("/profileBadge/:index", controller.profileBadge);
 
