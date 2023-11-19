@@ -54,32 +54,18 @@ interface UserLoginRequest {
 }
 
 const userLogin = async (req: Request, res: Response, next: NextFunction) => {
-  console.log("Help");
   try {
-    const { username, password, usePost, checkValue } = req.body;
+    const { username, password } = req.body;
 
-    // Fetch the user from the database based on the username
-    const query = new Parse.Query(Parse.User);
-    query.equalTo("username", username);
-    const user = await query.first();
+    const user = await Parse.User.logIn(username, password);
 
-    console.log("HERE");
-
-    console.log(user?.get("emailVerified"));
-
-    // Check if the user exists and if the checkValue matches the value in the database
-    if (user && user.get("emailVerified")) {
-      // Use the additional parameter in the login method
-      const loggedInUser = await Parse.User.logIn(username, password, {
-        usePost: usePost,
-      });
-
+    if (user.toJSON().emailVerified) {
       return res.status(200).json({
-        user: loggedInUser,
+        user: user,
       });
     } else {
       return res.status(401).json({
-        message: "Invalid credentials or checkValue mismatch",
+        message: "User not verified",
       });
     }
   } catch (error) {
