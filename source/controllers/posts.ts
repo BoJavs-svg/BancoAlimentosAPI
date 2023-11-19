@@ -691,8 +691,11 @@ const profileChange = async (
   next: NextFunction
 ) => {
   try {
-    const colorProfilePicture: number = parseInt(req.body.colorProfilePicture);
-    const idProfilePicture: number = parseInt(req.body.idProfilePicture);
+    const {
+      colorProfilePicture,
+      idProfilePicture
+     } : {colorProfilePicture: number, idProfilePicture: number} = req.body;
+ 
     const sessionToken: string = req.headers.authorization ?? "";
 
     Parse.User.enableUnsafeCurrentUser();
