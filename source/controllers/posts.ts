@@ -668,13 +668,13 @@ const createBadge = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-const editarPerfil = async (
+const profileChange = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const color: number = parseInt(req.body.colorProfilePicture);
+    const color: string = req.body.colorProfilePicture;
     const idProfilePicture: number = parseInt(req.body.idProfilePicture);
     const sessionToken: string = req.headers.authorization ?? "";
 
@@ -733,7 +733,7 @@ const getUserPosts = async (
 };
 
 export default {
-  editarPerfil,
+  profileChange,
   createBadge,
   createUser,
   userLogin,
