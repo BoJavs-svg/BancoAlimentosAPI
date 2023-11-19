@@ -139,15 +139,14 @@ const createPollo = async (req: Request, res: Response, next: NextFunction) => {
 
 const createPost = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const {
-      sessionToken,
-      text,
-      title,
-    }: { sessionToken: string; text: string; title: string } = req.body;
+    const { text, title }: { text: string; title: string } = req.body;
     const Post = Parse.Object.extend("Post");
     const post = new Post();
+
+    const sessionToken: string = req.headers.authorization ?? "";
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
+
     post.set("text", text);
     post.set("title", title);
 
@@ -629,7 +628,7 @@ const profileBadge = async (
       });
     } else {
       return res.status(404).json({
-        message: "Pollo not found",
+        message: "Badge not found",
       });
     }
   } catch (error) {
@@ -655,7 +654,7 @@ const createBadge = async (req: Request, res: Response, next: NextFunction) => {
 
       const updatedUser = await user.save();
       return res.status(200).json({
-        message: "Badge added successfully",
+        message: "Posts Fetches successfully",
       });
     } else {
       return res.status(400).json({
