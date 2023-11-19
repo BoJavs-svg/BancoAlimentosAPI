@@ -696,7 +696,7 @@ const profileChange = async (
     const sessionToken: string = req.headers.authorization ?? "";
 
     Parse.User.enableUnsafeCurrentUser();
-
+  
     const user = await Parse.User.become(sessionToken);
 
     if (user) {
