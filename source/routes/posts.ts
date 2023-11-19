@@ -3,23 +3,24 @@ import express from "express";
 import controller from "../controllers/posts";
 const router = express.Router();
 //User
-router.post("/userSignUp", controller.createUser);//
-router.get("/authSessionToken/:sessionToken", controller.authSessionToken);//
-router.post("/userLogin", controller.userLogin);//
-router.patch("/profileBadge/:index", controller.profileBadge);//
-router.get("/resetPassword", controller.resetPassword);//
-router.get("/deleteUser", controller.deleteUser);//
+router.post("/userSignUp", controller.createUser); //
+router.get("/authSessionToken/:sessionToken", controller.authSessionToken); //
+router.post("/userLogin", controller.userLogin); //
+router.patch("/profileBadge/:index", controller.profileBadge); //
+router.get("/resetPassword", controller.resetPassword); //
+router.get("/deleteUser", controller.deleteUser); //
 router.patch("/profileBadge/:index", controller.profileBadge);
 router.patch("/badgeCreate/:badge", controller.createBadge);
-router.patch("/editarPerfil/", controller.editarPerfil); 
+router.patch("/editarPerfil/", controller.editarPerfil);
+router.get("/getUserPosts", controller.getUserPosts);
 
 //Post
-router.post("/post", controller.createPost);//
-router.get("/getPosts", controller.getPost);//
-router.patch("/likePost/:postId/:like", controller.likePost);//
-router.patch("/view/:postId", controller.viewPost);//
-router.patch("/editPost/:postId", controller.editPost);//
-router.patch("/report/:objId/:type", controller.report);//
+router.post("/post", controller.createPost); //
+router.get("/getPosts", controller.getPost); //
+router.patch("/likePost/:postId/:like", controller.likePost); //
+router.patch("/view/:postId", controller.viewPost); //
+router.patch("/editPost/:postId", controller.editPost); //
+router.patch("/report/:objId/:type", controller.report); //
 // router.patch("/deletePost/:postId", controller.deletePost);
 
 //Comment

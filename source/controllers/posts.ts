@@ -287,7 +287,6 @@ const likePost = async (req: Request, res: Response, next: NextFunction) => {
       });
     }
   } catch (error) {
-
     return res.status(500).json({
       message: "Internal Server Error",
     });
@@ -640,11 +639,7 @@ const profileBadge = async (
   }
 };
 
-const createBadge = async (
-  req: Request,
-  res: Response, 
-  next: NextFunction
-) => {
+const createBadge = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const badge: number = parseInt(req.params.badge);
     const sessionToken: string = req.headers.authorization ?? "";
@@ -653,14 +648,14 @@ const createBadge = async (
 
     const user = await Parse.User.become(sessionToken);
 
-    if(user) {
+    if (user) {
       const badges = user.get("badges") || [];
       badges.push(badge);
-      user.set('badges', badges);
+      user.set("badges", badges);
 
       const updatedUser = await user.save();
       return res.status(200).json({
-        message: "Badge added successfully"
+        message: "Badge added successfully",
       });
     } else {
       return res.status(400).json({
@@ -672,7 +667,7 @@ const createBadge = async (
       message: "Internal Server Error",
     });
   }
-}
+};
 
 const editarPerfil = async (
   req: Request,
@@ -680,18 +675,17 @@ const editarPerfil = async (
   next: NextFunction
 ) => {
   try {
-    
     const color: number = parseInt(req.body.colorProfilePicture);
     const idProfilePicture: number = parseInt(req.body.idProfilePicture);
     const sessionToken: string = req.headers.authorization ?? "";
-    
+
     Parse.User.enableUnsafeCurrentUser();
-    
+
     const user = await Parse.User.become(sessionToken);
-    
-    if(user) {
+
+    if (user) {
       user.set("colorProfilePicture", color);
-      user.set("idProfilePicture", idProfilePicture); 
+      user.set("idProfilePicture", idProfilePicture);
       const updatedUser = await user.save();
       return res.status(200).json({
         message: "Color preferences saved",
@@ -701,9 +695,43 @@ const editarPerfil = async (
   } catch (error) {
     return res.status(500).json({
       message: "Internal Server Error",
-    }); 
+    });
   }
-}
+};
+
+const getUserPosts = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const sessionToken: string = req.headers.authorization ?? "";
+    Parse.User.enableUnsafeCurrentUser();
+    const user = await Parse.User.become(sessionToken);
+
+    if (user) {
+      const parseQuery = new Parse.Query("Post");
+      var posts: Parse.Object[] = await parseQuery.find();
+      const userJson = user.toJSON();
+      posts = posts.filter(
+        (post) => post.toJSON().username == userJson.username
+      );
+
+      return res.status(200).json({
+        message: "Badge changed changed successfully",
+        userPosts: posts,
+      });
+    } else {
+      return res.status(404).json({
+        message: "Pollo not found",
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+};
 
 export default {
   editarPerfil,
@@ -729,4 +757,5 @@ export default {
   resetPassword,
   deleteUser,
   profileBadge,
+  getUserPosts,
 };
