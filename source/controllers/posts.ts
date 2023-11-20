@@ -600,7 +600,7 @@ const resetPassword = async (
     const { email } = req.body;
     await Parse.User.requestPasswordReset(email);
     return res.status(200).json({
-      message: "Email sent",
+      message: 'Email sent ',
     });
   } catch (error) {
     return res.status(500).json({
@@ -753,15 +753,30 @@ const verificationEmail = async (req: Request, res: Response, next: NextFunction
   try {
     const user = await Parse.User.currentAsync();
     if (user) {
-      // Call Cloud Function to send email verification
       await Parse.Cloud.run('sendVerificationEmail');
-      console.log('Email verification request sent successfully');
     }
     return res.status(200).json({
-      message: 'Email verification request sent successfully',
     });
   } catch (error: any) {
-    console.error('Error sending email verification request:', error.message);
+    return res.status(500).json({
+      message: 'Internal Server Error',
+    });
+  }
+};
+
+const resPasswd = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const {email} = req.body;
+    if (email) {
+      // Call Cloud Function to send email verification
+      await Parse.Cloud.run('requestPasswordReset');
+      console.log('recover passwd');
+    }
+    return res.status(200).json({
+      message: 'Email reset password request sent successfully',
+    });
+  } catch (error: any) {
+    console.error('Error sending email password reset request:', error.message);
     return res.status(500).json({
       message: 'Internal Server Error',
     });
@@ -794,4 +809,5 @@ export default {
   profileBadge,
   verificationEmail,
   getUserPosts,
+  resPasswd
 };
