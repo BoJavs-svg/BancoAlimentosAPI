@@ -3,7 +3,6 @@ import { Request, Response, NextFunction } from "express";
 import axios, { AxiosResponse } from "axios";
 import Parse from "parse/node";
 import * as dotenv from "dotenv";
-import {GoogleSignin} from '@react-native-community/google-signin';
 dotenv.config();
 
 //DB CONNECTION
@@ -39,7 +38,7 @@ const createUser = async (
     user.set("email", email);
     await user.signUp();
 
-    return res.status(200).json({
+    return res.status(201).json({
       message: "New object created successfully",
       user: user,
     });
@@ -54,21 +53,37 @@ interface UserLoginRequest {
   password: string;
 }
 
-const userLogin = async (
-  req: Request<{}, {}, UserLoginRequest>,
-  res: Response,
-  next: NextFunction
-) => {
+const userLogin = async (req: Request, res: Response, next: NextFunction) => {
+  console.log("Help")
   try {
-    const { username, password } = req.body;
-    const user = await Parse.User.logIn(username, password);
-    return res.status(200).json({
-      user: user,
-    });
+      const { username, password, usePost, checkValue } = req.body;
+
+      // Fetch the user from the database based on the username
+      const query = new Parse.Query(Parse.User);
+      query.equalTo('username', username);
+      const user = await query.first();
+
+      console.log("HERE")
+
+      console.log(user?.get('emailVerified'))
+
+      // Check if the user exists and if the checkValue matches the value in the database
+      if (user && user.get('emailVerified')) {
+          // Use the additional parameter in the login method
+          const loggedInUser = await Parse.User.logIn(username, password, { usePost: usePost });
+
+          return res.status(200).json({
+              user: loggedInUser,
+          });
+      } else {
+          return res.status(401).json({
+              message: 'Invalid credentials or checkValue mismatch',
+          });
+      }
   } catch (error) {
-    return res.status(500).json({
-      message: "Internal Server Error",
-    });
+      return res.status(500).json({
+          message: error,
+      });
   }
 };
 
@@ -140,15 +155,14 @@ const createPollo = async (req: Request, res: Response, next: NextFunction) => {
 
 const createPost = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const {
-      sessionToken,
-      text,
-      title,
-    }: { sessionToken: string; text: string; title: string } = req.body;
+    const { text, title }: { text: string; title: string } = req.body;
     const Post = Parse.Object.extend("Post");
     const post = new Post();
+
+    const sessionToken: string = req.headers.authorization ?? "";
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
+
     post.set("text", text);
     post.set("title", title);
 
@@ -288,7 +302,6 @@ const likePost = async (req: Request, res: Response, next: NextFunction) => {
       });
     }
   } catch (error) {
-
     return res.status(500).json({
       message: "Internal Server Error",
     });
@@ -595,6 +608,7 @@ const resetPassword = async (
     });
   }
 };
+
 const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { sessionToken } = req.body;
@@ -625,10 +639,106 @@ const profileBadge = async (
     if (user) {
       user.set("visBadge", badgeIndex);
       const updatedUser = await user.save();
-      console.log("user found");
       return res.status(200).json({
         message: "Badge changed changed successfully",
         user: updatedUser,
+      });
+    } else {
+      return res.status(404).json({
+        message: "Badge not found",
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+};
+
+const createBadge = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const badge: number = parseInt(req.params.badge);
+    const sessionToken: string = req.headers.authorization ?? "";
+
+    Parse.User.enableUnsafeCurrentUser();
+
+    const user = await Parse.User.become(sessionToken);
+
+    if (user) {
+      const badges = user.get("badges") || [];
+      badges.push(badge);
+      user.set("badges", badges);
+
+      const updatedUser = await user.save();
+      return res.status(200).json({
+        message: "Posts Fetches successfully",
+      });
+    } else {
+      return res.status(400).json({
+        message: "User not found",
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+};
+
+const profileChange = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const {
+      colorProfilePicture,
+      idProfilePicture
+     } : {colorProfilePicture: number, idProfilePicture: number} = req.body;
+ 
+    const sessionToken: string = req.headers.authorization ?? "";
+
+    Parse.User.enableUnsafeCurrentUser();
+  
+    const user = await Parse.User.become(sessionToken);
+
+    if (user) {
+      user.set("colorProfilePicture", colorProfilePicture);
+      user.set("idProfilePicture", idProfilePicture);
+      const updatedUser = await user.save();
+      return res.status(200).json({
+        message: "Color preferences saved",
+        user: updatedUser,
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+};
+
+const getUserPosts = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const sessionToken: string = req.headers.authorization ?? "";
+    Parse.User.enableUnsafeCurrentUser();
+    const user = await Parse.User.become(sessionToken);
+
+    if (user) {
+      const parseQuery = new Parse.Query("Post");
+      var posts: Parse.Object[] = await parseQuery.find();
+      const userJson = user.toJSON();
+      posts = posts.filter(
+        (post) => post.toJSON().username == userJson.username
+      );
+
+      return res.status(200).json({
+        message: "Badge changed changed successfully",
+        userPosts: posts,
       });
     } else {
       return res.status(404).json({
@@ -641,37 +751,29 @@ const profileBadge = async (
     });
   }
 };
-const googleSignUp = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { idToken } = req.body;
-    const response: AxiosResponse = await axios.get(
-      `https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`
-    );
-    const { email, name } = response.data;
-    const User = Parse.Object.extend("_User");
-    const user = new User();
-    user.set("username", email);
-    user.set("password", "123456");
-    user.set("email", email);
-    user.set("name", name);
-    await user.signUp();
 
+const verificationEmail = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = await Parse.User.currentAsync();
+    if (user) {
+      // Call Cloud Function to send email verification
+      await Parse.Cloud.run('sendVerificationEmail');
+      console.log('Email verification request sent successfully');
+    }
     return res.status(200).json({
-      message: "New object created successfully",
-      user: user,
+      message: 'Email verification request sent successfully',
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Error sending email verification request:', error.message);
     return res.status(500).json({
-      message: "Internal Server Error",
+      message: 'Internal Server Error',
     });
   }
-}
+};
 
 export default {
+  profileChange,
+  createBadge,
   createUser,
   userLogin,
   createPost,
@@ -693,5 +795,7 @@ export default {
   resetPassword,
   deleteUser,
   profileBadge,
-  googleSignUp,
+  verificationEmail,
+  getUserPosts,
+
 };

@@ -181,7 +181,25 @@ class TestAPIEndpoints(unittest.TestCase):
         response = requests.patch(url, headers=self.headers, json=body)
         self.assertEqual(response.status_code, 200)
 
+
+    def test_21_createBadge(self):
+        url = self.base_url + "/badgeCreate/" + "2" 
+        response = requests.patch(url, headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+
+    def test_22_changeProfile(self):
+        url = self.base_url + "/changeProfile"
+        response = requests.patch(url, headers=self.headers)
+        body = {
+            "colorProfilePicture": 2,
+            "idProfilePicture": 4
+        }
+        
+        self.assertEqual(response.status_code, 200);
+    
+
+
 if __name__ == "__main__":
     print("Starting tests")
     unittest.main()
-    
+    delete
