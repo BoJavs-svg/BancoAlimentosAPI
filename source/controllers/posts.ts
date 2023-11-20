@@ -54,24 +54,36 @@ interface UserLoginRequest {
 }
 
 const userLogin = async (req: Request, res: Response, next: NextFunction) => {
+  console.log("Help")
   try {
-    const { username, password } = req.body;
+      const { username, password, usePost, checkValue } = req.body;
 
-    const user = await Parse.User.logIn(username, password);
+      // Fetch the user from the database based on the username
+      const query = new Parse.Query(Parse.User);
+      query.equalTo('username', username);
+      const user = await query.first();
 
-    if (user.toJSON().emailVerified) {
-      return res.status(200).json({
-        user: user,
-      });
-    } else {
-      return res.status(401).json({
-        message: "User not verified",
-      });
-    }
+      console.log("HERE")
+
+      console.log(user?.get('emailVerified'))
+
+      // Check if the user exists and if the checkValue matches the value in the database
+      if (user && user.get('emailVerified')) {
+          // Use the additional parameter in the login method
+          const loggedInUser = await Parse.User.logIn(username, password, { usePost: usePost });
+
+          return res.status(200).json({
+              user: loggedInUser,
+          });
+      } else {
+          return res.status(401).json({
+              message: 'Invalid credentials or checkValue mismatch',
+          });
+      }
   } catch (error) {
-    return res.status(500).json({
-      message: error,
-    });
+      return res.status(500).json({
+          message: error,
+      });
   }
 };
 
@@ -143,7 +155,7 @@ const createPollo = async (req: Request, res: Response, next: NextFunction) => {
 
 const createPost = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { text }: { text: string } = req.body;
+    const { text, title }: { text: string; title: string } = req.body;
     const Post = Parse.Object.extend("Post");
     const post = new Post();
 
@@ -151,25 +163,16 @@ const createPost = async (req: Request, res: Response, next: NextFunction) => {
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
 
-    if (user) {
-      post.set("text", text);
-      post.set("title", user.get("username"));
-      post.set("username", user.get("username"));
+    post.set("text", text);
+    post.set("title", title);
 
-      const Users = Parse.Object.extend("_User");
-      const userPointer = Users.createWithoutData(user.id);
+    post.set("username", user.get("username"));
+    post.set("idProfilePicture", user.get("idProfilePicture"));
+    await post.save();
 
-      post.set("userPointer", userPointer);
-      await post.save();
-
-      return res.status(200).json({
-        message: "New post created successfully",
-      });
-    } else {
-      return res.status(401).json({
-        message: "User not found",
-      });
-    }
+    return res.status(200).json({
+      message: "New post created successfully",
+    });
   } catch (error) {
     return res.status(500).json({
       message: "Internal Server Error",
@@ -608,7 +611,7 @@ const resetPassword = async (
 
 const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const sessionToken: string = req.headers.authorization ?? "";
+    const { sessionToken } = req.body;
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
     await user.destroy();
@@ -690,13 +693,13 @@ const profileChange = async (
   try {
     const {
       colorProfilePicture,
-      idProfilePicture,
-    }: { colorProfilePicture: number; idProfilePicture: number } = req.body;
-
+      idProfilePicture
+     } : {colorProfilePicture: number, idProfilePicture: number} = req.body;
+ 
     const sessionToken: string = req.headers.authorization ?? "";
 
     Parse.User.enableUnsafeCurrentUser();
-
+  
     const user = await Parse.User.become(sessionToken);
 
     if (user) {
@@ -749,24 +752,21 @@ const getUserPosts = async (
   }
 };
 
-const verificationEmail = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const verificationEmail = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = await Parse.User.currentAsync();
     if (user) {
       // Call Cloud Function to send email verification
-      await Parse.Cloud.run("sendVerificationEmail");
+      await Parse.Cloud.run('sendVerificationEmail');
+      console.log('Email verification request sent successfully');
     }
     return res.status(200).json({
-      message: "Email verification request sent successfully",
+      message: 'Email verification request sent successfully',
     });
   } catch (error: any) {
-    console.error("Error sending email verification request:", error.message);
+    console.error('Error sending email verification request:', error.message);
     return res.status(500).json({
-      message: "Internal Server Error",
+      message: 'Internal Server Error',
     });
   }
 };
