@@ -195,8 +195,6 @@ const getPost = async (req: Request, res: Response, next: NextFunction) => {
       return {
         ...post.toJSON(),
         isliked: post.toJSON().usersLiked.includes(user.id),
-        profilePicture: user.get('idProfilePicture'),
-        pictureColor: user.get('colorProfilePicture')
       };
     });
 
