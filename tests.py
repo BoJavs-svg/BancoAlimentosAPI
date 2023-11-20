@@ -33,13 +33,13 @@ class TestAPIEndpoints(unittest.TestCase):
         response = requests.get(url)
         self.assertEqual(response.status_code, 200)
     
-    # def test_03_resetPassword(self):
-    #     url= self.base_url + "/resetPassword"
-    #     data = {
-    #         "email": "javiereric1309@gmail.com"
-    #     }
-    #     response = requests.get(url, json=data)
-    #     self.assertEqual(response.status_code, 200)
+    def test_03_resetPassword(self):
+        url= self.base_url + "/resetPassword"
+        data = {
+            "email": "test@test.com"
+        }
+        response = requests.get(url, json=data)
+        self.assertEqual(response.status_code, 200)
 
     def test_04_profileBadges(self):
         url= self.base_url + "/profileBadge/1"

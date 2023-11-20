@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import axios, { AxiosResponse } from "axios";
 import Parse from "parse/node";
 import * as dotenv from "dotenv";
+import {GoogleSignin} from '@react-native-community/google-signin';
 dotenv.config();
 
 //DB CONNECTION
@@ -640,6 +641,35 @@ const profileBadge = async (
     });
   }
 };
+const googleSignUp = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { idToken } = req.body;
+    const response: AxiosResponse = await axios.get(
+      `https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`
+    );
+    const { email, name } = response.data;
+    const User = Parse.Object.extend("_User");
+    const user = new User();
+    user.set("username", email);
+    user.set("password", "123456");
+    user.set("email", email);
+    user.set("name", name);
+    await user.signUp();
+
+    return res.status(200).json({
+      message: "New object created successfully",
+      user: user,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+}
 
 export default {
   createUser,
@@ -663,4 +693,5 @@ export default {
   resetPassword,
   deleteUser,
   profileBadge,
+  googleSignUp,
 };
