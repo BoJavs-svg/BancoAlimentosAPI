@@ -588,24 +588,6 @@ const eggPollito = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-const resetPassword = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { email } = req.body;
-    await Parse.User.requestPasswordReset(email);
-    return res.status(200).json({
-      message: 'Email sent ',
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: "Internal Server Error",
-    });
-  }
-};
-
 const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const sessionToken: string = req.headers.authorization ?? "";
@@ -767,7 +749,12 @@ const verificationEmail = async (
     }
 };
 
-const resPasswd = async (req: Request, res: Response, next: NextFunction) => {
+// "Cloud" con Parse | en revision
+const resPasswd = async (
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+  ) => {
   try {
     const {email} = req.body;
     if (email) {
@@ -780,6 +767,25 @@ const resPasswd = async (req: Request, res: Response, next: NextFunction) => {
     });
   } catch (error: any) {
     console.error('Error sending email password reset request:', error.message);
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+};
+
+// "User" con Parse
+const resetPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email } = req.body;
+    await Parse.User.requestPasswordReset(email);
+    return res.status(200).json({
+      message: 'Email sent ',
+    });
+  } catch (error) {
     return res.status(500).json({
       message: "Internal Server Error",
     });
