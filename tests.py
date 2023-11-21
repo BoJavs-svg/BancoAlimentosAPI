@@ -59,11 +59,10 @@ class TestAPIEndpoints(unittest.TestCase):
     def test_06_post(self):
         url = self.base_url + "/post"
         data = {
-            "sessionToken": self.sessionToken,
             "title": "test",
             "text": "test"
         }
-        response = requests.post(url, json=data)
+        response = requests.post(url, json=data,headers=self.headers)
         self.assertEqual(response.status_code, 200)
     def test_07_getPost(self):
         url = self.base_url + "/getPosts"

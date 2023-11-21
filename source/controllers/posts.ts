@@ -59,9 +59,9 @@ const userLogin = async (req: Request, res: Response, next: NextFunction) => {
 
     const user = await Parse.User.logIn(username, password);
 
-    return res.status(200).json({
-      user: user,
-    });
+      return res.status(200).json({
+        user: user,
+      });
   } catch (error) {
     return res.status(500).json({
       message: error,
@@ -145,17 +145,22 @@ const createPost = async (req: Request, res: Response, next: NextFunction) => {
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
 
-    post.set("text", text);
-    post.set("title", title);
+    if (user) {
+      post.set("text", text);
+      post.set("title", user.get("username"));
+      post.set("username", user.get("username"));
 
-    post.set("username", user.get("username"));
-    post.set("idProfilePicture", user.get("idProfilePicture"));
-    await post.save();
+      const Users = Parse.Object.extend("_User");
+      const userPointer = Users.createWithoutData(user.id);
+
+      post.set("userPointer", userPointer);
+      await post.save();
 
     return res.status(200).json({
       message: "New post created successfully",
     });
-  } catch (error) {
+
+  }} catch (error) {
     return res.status(500).json({
       message: "Internal Server Error",
     });
@@ -172,31 +177,17 @@ const getPost = async (req: Request, res: Response, next: NextFunction) => {
     const sessionToken: string = req.headers.authorization ?? "";
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
-    const userQuery = new Parse.Query("_User");
 
-    const promises = posts.map((post): Promise<any> => {
-      let postUser:any;
- 
-      async function getUser() {
-        const user = await userQuery.get(post.get('userPointer'));
-        postUser = user;
-      }
- 
-      return getUser().then(() => {
-        return {
-          ...post.toJSON(),
-          isliked: post.toJSON().usersLiked.includes(user.id),
-          profilePic: postUser.get("idProfilePicture"), 
-          profileColor: postUser.get("colorProfilePicture")
-        };
-      });
+    const newPosts = posts.map((post): any => {
+      return {
+        ...post.toJSON(),
+        isliked: post.toJSON().usersLiked.includes(user.id),
+      };
     });
-
-    const newPosts = await Promise.all(promises);
 
     return res.status(200).json({
       message: "Posts retrieved",
-      posts: newPosts,
+      posts:newPosts,
     });
   } catch (error) {
     return res.status(500).json({
@@ -219,14 +210,15 @@ const createComment = async (
     }: { sessionToken: string; postId: string; text: string } = req.body;
     const Comment = Parse.Object.extend("Comment");
     const comment = new Comment();
-
+    
     const user = await Parse.User.become(sessionToken);
+    const username = await user.get("username")
     comment.set("text", text);
-
+    
     const Post = Parse.Object.extend("Post");
     const commentPointerP = Post.createWithoutData(postId);
-
-    comment.set("username", user.get("username"));
+    
+    comment.set("username", username);
     comment.set("idProfilePicture", user.get("idProfilePicture"));
     comment.set("postId", commentPointerP);
 
@@ -748,25 +740,20 @@ const getUserPosts = async (
   }
 };
 
-const verificationEmail = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const verificationEmail = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = await Parse.User.currentAsync();
     if (user) {
       // Call Cloud Function to send email verification
       await Parse.Cloud.run("sendVerificationEmail");
-      console.log("Email verification request sent successfully");
     }
     return res.status(200).json({
-      message: "Email verification request sent successfully",
+      message: 'Email verification request sent successfully',
     });
   } catch (error: any) {
     console.error("Error sending email verification request:", error.message);
     return res.status(500).json({
-      message: "Internal Server Error",
+      message: 'Internal Server Error',
     });
   }
 };
