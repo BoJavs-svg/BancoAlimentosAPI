@@ -150,6 +150,7 @@ const createPost = async (req: Request, res: Response, next: NextFunction) => {
       post.set("title", user.get("username"));
       post.set("username", user.get("username"));
 
+
       const Users = Parse.Object.extend("_User");
       const userPointer = Users.createWithoutData(user.id);
 
@@ -221,6 +222,11 @@ const createComment = async (
     comment.set("username", username);
     comment.set("idProfilePicture", user.get("idProfilePicture"));
     comment.set("postId", commentPointerP);
+
+    const Users = Parse.Object.extend("_User");
+    const userPointer = Users.createWithoutData(user.id);
+
+    comment.set("userId", userPointer);
 
     await comment.save();
 
