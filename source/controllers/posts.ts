@@ -190,12 +190,14 @@ const getPost = async (req: Request, res: Response, next: NextFunction) => {
     const userQuery = new Parse.Query("_User");
 
     const newPosts = posts.map((post): any => {
-      let postUser;
+      let postUser:any;
 
-      
-      userQuery.get(post.get('userPointer')).then((user) => {
+      async function getUser() {
+        const user = await userQuery.get(post.get('userPointer'));
         postUser = user;
-       });
+      }
+
+      getUser(); 
 
       return {
         ...post.toJSON(),
