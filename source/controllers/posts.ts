@@ -187,13 +187,21 @@ const getPost = async (req: Request, res: Response, next: NextFunction) => {
     const sessionToken: string = req.headers.authorization ?? "";
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
+    const userQuery = new Parse.Query("_User");
 
     const newPosts = posts.map((post): any => {
+      let postUser;
+
+      
+      userQuery.get(post.get('userPointer')).then((user) => {
+        postUser = user;
+       });
+
       return {
         ...post.toJSON(),
         isliked: post.toJSON().usersLiked.includes(user.id),
-        profilePic: user.get("idProfilePicture"), 
-        profileColor:  user.get("colorProfilePicture")
+        profilePic: postUser.get("idProfilePicture"), 
+        profileColor:  postUser.get("colorProfilePicture")
       };
     });
 
