@@ -143,7 +143,7 @@ const createPollo = async (req: Request, res: Response, next: NextFunction) => {
 
 const createPost = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { text }: { text: string } = req.body;
+    const { text, title }: { text: string; title: string } = req.body;
     const Post = Parse.Object.extend("Post");
     const post = new Post();
 
@@ -151,25 +151,16 @@ const createPost = async (req: Request, res: Response, next: NextFunction) => {
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
 
-    if (user) {
-      post.set("text", text);
-      post.set("title", user.get("username"));
-      post.set("username", user.get("username"));
+    post.set("text", text);
+    post.set("title", title);
 
-      const Users = Parse.Object.extend("_User");
-      const userPointer = Users.createWithoutData(user.id);
+    post.set("username", user.get("username"));
+    post.set("idProfilePicture", user.get("idProfilePicture"));
+    await post.save();
 
-      post.set("userPointer", userPointer);
-      await post.save();
-
-      return res.status(200).json({
-        message: "New post created successfully",
-      });
-    } else {
-      return res.status(401).json({
-        message: "User not found",
-      });
-    }
+    return res.status(200).json({
+      message: "New post created successfully",
+    });
   } catch (error) {
     return res.status(500).json({
       message: "Internal Server Error",
