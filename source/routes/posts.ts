@@ -7,7 +7,7 @@ router.post("/userSignUp", controller.createUser);//
 router.get("/authSessionToken/:sessionToken", controller.authSessionToken);//
 router.post("/userLogin", controller.userLogin);//
 router.patch("/profileBadge/:index", controller.profileBadge);//
-router.get("/resetPassword", controller.resetPassword);//
+router.post("/resetPassword", controller.resetPassword);//
 router.get("/deleteUser", controller.deleteUser);//
 router.patch("/profileBadge/:index", controller.profileBadge);
 router.patch("/changeProfile/", controller.profileChange); 
