@@ -62,7 +62,7 @@ const userLogin = async (req: Request, res: Response, next: NextFunction) => {
     if (user.toJSON().emailVerified) {
       return res.status(200).json({
         user: user,
-      });
+      }); 
     } else {
       return res.status(401).json({
         message: "User not verified",
@@ -756,11 +756,11 @@ const resPasswd = async (
   next: NextFunction
   ) => {
   try {
-    const {email} = req.body;
+    const email = req.params.email;
     if (email) {
       // Call Cloud Function to send email verification
-      await Parse.Cloud.run('requestPasswordReset');
-      console.log('recover passwd');
+      await Parse.Cloud.run('requestPasswordReset', {email: email});
+      console.info('recover passwd');
     }
     return res.status(200).json({
       message: 'Email reset password request sent successfully',
@@ -780,13 +780,15 @@ const resetPassword = async (
   next: NextFunction
 ) => {
   try {
+    // const email: string = req.params.email; 
     const { email } = req.body;
+    console.info(email)
     await Parse.User.requestPasswordReset(email);
     return res.status(200).json({
       message: 'Email sent ',
     });
   } catch (error) {
-    return res.status(500).json({
+    return res.status(500).json({ 
       message: "Internal Server Error",
     });
   }
