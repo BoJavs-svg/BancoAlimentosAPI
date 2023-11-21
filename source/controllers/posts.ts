@@ -189,23 +189,25 @@ const getPost = async (req: Request, res: Response, next: NextFunction) => {
     const user = await Parse.User.become(sessionToken);
     const userQuery = new Parse.Query("_User");
 
-    const newPosts = posts.map((post): any => {
+    const promises = posts.map((post): Promise<any> => {
       let postUser:any;
-
+ 
       async function getUser() {
         const user = await userQuery.get(post.get('userPointer'));
         postUser = user;
       }
-
-      getUser(); 
-
-      return {
-        ...post.toJSON(),
-        isliked: post.toJSON().usersLiked.includes(user.id),
-        profilePic: postUser.get("idProfilePicture"), 
-        profileColor:  postUser.get("colorProfilePicture")
-      };
+ 
+      return getUser().then(() => {
+        return {
+          ...post.toJSON(),
+          isliked: post.toJSON().usersLiked.includes(user.id),
+          profilePic: postUser.get("idProfilePicture"), 
+          profileColor: postUser.get("colorProfilePicture")
+        };
+      });
     });
+
+    const newPosts = await Promise.all(promises);
 
     return res.status(200).json({
       message: "Posts retrieved",
