@@ -59,15 +59,9 @@ const userLogin = async (req: Request, res: Response, next: NextFunction) => {
 
     const user = await Parse.User.logIn(username, password);
 
-    if (user.toJSON().emailVerified) {
-      return res.status(200).json({
-        user: user,
-      });
-    } else {
-      return res.status(401).json({
-        message: "User not verified",
-      });
-    }
+    return res.status(200).json({
+      user: user,
+    });
   } catch (error) {
     return res.status(500).json({
       message: error,
