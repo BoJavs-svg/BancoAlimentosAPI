@@ -10,6 +10,8 @@ router.patch("/profileBadge/:index", controller.profileBadge);//
 router.get("/resetPassword", controller.resetPassword);//
 router.get("/deleteUser", controller.deleteUser);//
 router.patch("/profileBadge/:index", controller.profileBadge);
+router.patch("/changeProfile/", controller.profileChange); 
+router.patch("/badgeCreate/:badge", controller.createBadge);
 
 //Post
 router.post("/post", controller.createPost);//
@@ -33,6 +35,5 @@ router.patch("/patchPollito/:polloId", controller.patchPollito);
 router.patch("/nextApple/:polloId", controller.nextApplePollito);
 router.patch("/nextStagePollito/:polloId", controller.nextStagePollito);
 router.patch("/eggPollito", controller.eggPollito);
-// router.patch("/deletePollito/:polloId", controller.deletePollito);
 
 export = router;

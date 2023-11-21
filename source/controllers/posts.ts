@@ -54,36 +54,18 @@ interface UserLoginRequest {
 }
 
 const userLogin = async (req: Request, res: Response, next: NextFunction) => {
-  console.log("Help")
   try {
-      const { username, password, usePost, checkValue } = req.body;
+    const { username, password } = req.body;
 
-      // Fetch the user from the database based on the username
-      const query = new Parse.Query(Parse.User);
-      query.equalTo('username', username);
-      const user = await query.first();
+    const user = await Parse.User.logIn(username, password);
 
-      console.log("HERE")
-
-      console.log(user?.get('emailVerified'))
-
-      // Check if the user exists and if the checkValue matches the value in the database
-      if (user && user.get('emailVerified')) {
-          // Use the additional parameter in the login method
-          const loggedInUser = await Parse.User.logIn(username, password, { usePost: usePost });
-
-          return res.status(200).json({
-              user: loggedInUser,
-          });
-      } else {
-          return res.status(401).json({
-              message: 'Invalid credentials or checkValue mismatch',
-          });
-      }
-  } catch (error) {
-      return res.status(500).json({
-          message: error,
+      return res.status(200).json({
+        user: user,
       });
+  } catch (error) {
+    return res.status(500).json({
+      message: error,
+    });
   }
 };
 
@@ -163,17 +145,22 @@ const createPost = async (req: Request, res: Response, next: NextFunction) => {
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
 
-    post.set("text", text);
-    post.set("title", title);
+    if (user) {
+      post.set("text", text);
+      post.set("title", user.get("username"));
+      post.set("username", user.get("username"));
 
-    post.set("username", user.get("username"));
-    post.set("idProfilePicture", user.get("idProfilePicture"));
-    await post.save();
+      const Users = Parse.Object.extend("_User");
+      const userPointer = Users.createWithoutData(user.id);
+
+      post.set("userPointer", userPointer);
+      await post.save();
 
     return res.status(200).json({
       message: "New post created successfully",
     });
-  } catch (error) {
+
+  }} catch (error) {
     return res.status(500).json({
       message: "Internal Server Error",
     });
@@ -200,7 +187,7 @@ const getPost = async (req: Request, res: Response, next: NextFunction) => {
 
     return res.status(200).json({
       message: "Posts retrieved",
-      posts: newPosts,
+      posts:newPosts,
     });
   } catch (error) {
     return res.status(500).json({
@@ -223,14 +210,15 @@ const createComment = async (
     }: { sessionToken: string; postId: string; text: string } = req.body;
     const Comment = Parse.Object.extend("Comment");
     const comment = new Comment();
-
+    
     const user = await Parse.User.become(sessionToken);
+    const username = await user.get("username")
     comment.set("text", text);
-
+    
     const Post = Parse.Object.extend("Post");
     const commentPointerP = Post.createWithoutData(postId);
-
-    comment.set("username", user.get("username"));
+    
+    comment.set("username", username);
     comment.set("idProfilePicture", user.get("idProfilePicture"));
     comment.set("postId", commentPointerP);
 
@@ -693,13 +681,13 @@ const profileChange = async (
   try {
     const {
       colorProfilePicture,
-      idProfilePicture
-     } : {colorProfilePicture: number, idProfilePicture: number} = req.body;
- 
+      idProfilePicture,
+    }: { colorProfilePicture: number; idProfilePicture: number } = req.body;
+
     const sessionToken: string = req.headers.authorization ?? "";
 
     Parse.User.enableUnsafeCurrentUser();
-  
+
     const user = await Parse.User.become(sessionToken);
 
     if (user) {
@@ -757,14 +745,13 @@ const verificationEmail = async (req: Request, res: Response, next: NextFunction
     const user = await Parse.User.currentAsync();
     if (user) {
       // Call Cloud Function to send email verification
-      await Parse.Cloud.run('sendVerificationEmail');
-      console.log('Email verification request sent successfully');
+      await Parse.Cloud.run("sendVerificationEmail");
     }
     return res.status(200).json({
       message: 'Email verification request sent successfully',
     });
   } catch (error: any) {
-    console.error('Error sending email verification request:', error.message);
+    console.error("Error sending email verification request:", error.message);
     return res.status(500).json({
       message: 'Internal Server Error',
     });
@@ -850,6 +837,7 @@ export default {
   profileBadge,
   verificationEmail,
   getUserPosts,
+
   deletePost,
   deleteComment,
 };
