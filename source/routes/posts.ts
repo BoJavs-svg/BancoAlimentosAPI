@@ -10,6 +10,7 @@ router.patch("/profileBadge/:index", controller.profileBadge);//
 router.get("/resetPassword", controller.resetPassword);//
 router.get("/deleteUser", controller.deleteUser);//
 router.patch("/profileBadge/:index", controller.profileBadge);
+router.patch("/changeProfile/", controller.profileChange); 
 
 //Post
 router.post("/post", controller.createPost);//
