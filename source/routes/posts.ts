@@ -18,13 +18,13 @@ router.patch("/likePost/:postId/:like", controller.likePost);//
 router.patch("/view/:postId", controller.viewPost);//
 router.patch("/editPost/:postId", controller.editPost);//
 router.patch("/report/:objId/:type", controller.report);//
-// router.patch("/deletePost/:postId", controller.deletePost);
+router.patch("/deletePost/:postId", controller.deletePost);
 
 //Comment
 router.post("/comment", controller.createComment);
 router.get("/getComments/:postId", controller.getComment);
 router.patch("/likeComment/:commentId/:like", controller.likeComment);
-// router.patch("/deleteComment/:commentId", controller.deleteComment);
+router.patch("/deleteComment/:commentId", controller.deleteComment);
 
 //Pollo
 router.get("/getPollito/:polloId", controller.getPollito);
