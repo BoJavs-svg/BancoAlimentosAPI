@@ -757,6 +757,59 @@ const verificationEmail = async (req: Request, res: Response, next: NextFunction
     });
   }
 };
+const deletePost = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const postId = req.params.postId; 
+    const query = new Parse.Query("Post");
+    const commentQuery = new Parse.Query("Comment");
+
+    const post = await query.get(postId);
+
+    if (post) {
+      await post.destroy();
+      commentQuery.equalTo("postId", post);
+
+      let comments: Parse.Object[] = await commentQuery.find();
+      comments.forEach(async (comment) => {
+        await comment.destroy();
+      });
+      return res.status(200).json({
+        message: "Post deleted successfully",
+      });
+    } else {
+      return res.status(404).json({
+        message: "Post not found",
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+}
+const deleteComment = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const commentId = req.params.commentId; 
+    const query = new Parse.Query("Comment");
+    const comment = await query.get(commentId);
+
+    if (comment) {
+      await comment.destroy();
+      return res.status(200).json({
+        message: "Comment deleted successfully",
+      });
+    } else {
+      return res.status(404).json({
+        message: "Comment not found",
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal Server Error",
+      error: error
+    });
+  }
+}
 
 export default {
   profileChange,
@@ -784,4 +837,7 @@ export default {
   profileBadge,
   verificationEmail,
   getUserPosts,
+
+  deletePost,
+  deleteComment,
 };
