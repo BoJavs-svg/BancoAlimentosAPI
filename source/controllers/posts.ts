@@ -204,32 +204,44 @@ const createComment = async (
 ) => {
   try {
     const {
-      sessionToken,
       postId,
       text,
-    }: { sessionToken: string; postId: string; text: string } = req.body;
+    }: { postId: string; text: string } = req.body;
     const Comment = Parse.Object.extend("Comment");
     const comment = new Comment();
     
+    const sessionToken: string = req.headers.authorization ?? "";
+    Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
-    const username = await user.get("username")
-    comment.set("text", text);
     
-    const Post = Parse.Object.extend("Post");
-    const commentPointerP = Post.createWithoutData(postId);
-    
-    comment.set("username", username);
-    comment.set("idProfilePicture", user.get("idProfilePicture"));
-    comment.set("postId", commentPointerP);
+    if (user) {
+      const username = await user.get("username");
+      const Post = Parse.Object.extend("Post");
+      const commentPointerP = Post.createWithoutData(postId);
 
-    await comment.save();
+      const Users = Parse.Object.extend("_User");
+      const userId = Users.createWithoutData(user.id);
 
-    return res.status(200).json({
-      message: "New comment created successfully",
-    });
-  } catch (error) {
+      comment.set("userId", userId);
+      comment.set("text", text);
+      comment.set("username", username);
+      comment.set("idProfilePicture", user.get("idProfilePicture"));
+      comment.set("postId", commentPointerP);
+
+      await comment.save();
+
+      return res.status(200).json({
+        message: "New comment created successfully",
+      });
+    } else {
+      return res.status(400).json({
+        message: "User not found",
+      });
+    }
+  } catch (error: any) {
     return res.status(500).json({
       message: "Internal Server Error",
+      error: error.message
     });
   }
 };
