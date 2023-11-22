@@ -757,6 +757,7 @@ const verificationEmail = async (req: Request, res: Response, next: NextFunction
     });
   }
 };
+
 const deletePost = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const postId = req.params.postId; 
@@ -837,7 +838,6 @@ export default {
   profileBadge,
   verificationEmail,
   getUserPosts,
-
   deletePost,
   deleteComment,
 };
