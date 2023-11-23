@@ -148,7 +148,7 @@ const createPost = async (req: Request, res: Response, next: NextFunction) => {
     if (user) {
       post.set("text", text);
       post.set("title", title);
-      post.set("userData",[user.get("username"),user.get("colorProfilePicture"),user.get("idProfilePicture")]);
+      post.set("userData",[user.get("username"),user.get("colorProfilePicture"),user.get("idProfilePicture"),user.get("visBadge")]);
 
       await post.save();
 
@@ -213,20 +213,14 @@ const createComment = async (
     const comment = new Comment();
     
     const user = await Parse.User.become(sessionToken);
-    const username = await user.get("username")
     comment.set("text", text);
     
     const Post = Parse.Object.extend("Post");
     const commentPointerP = Post.createWithoutData(postId);
     
-    comment.set("username", username);
-    comment.set("idProfilePicture", user.get("idProfilePicture"));
     comment.set("postId", commentPointerP);
-
-    const Users = Parse.Object.extend("_User");
-    const userPointer = Users.createWithoutData(user.id);
-
-    comment.set("userId", userPointer);
+    
+    comment.set("userData",[user.get("username"),user.get("colorProfilePicture"),user.get("idProfilePicture"),user.get("visBadge")]);
 
     await comment.save();
 
