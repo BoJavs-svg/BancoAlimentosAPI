@@ -38,7 +38,7 @@ class TestAPIEndpoints(unittest.TestCase):
         data = {
             "email": "test@test.com"
         }
-        response = requests.get(url, json=data)
+        response = requests.post(url, json=data)
         self.assertEqual(response.status_code, 200)
 
     def test_04_profileBadges(self):
@@ -201,4 +201,3 @@ class TestAPIEndpoints(unittest.TestCase):
 if __name__ == "__main__":
     print("Starting tests")
     unittest.main()
-    delete

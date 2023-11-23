@@ -16,7 +16,7 @@ router.get("/verificationEmail", controller.verificationEmail);
 
 //Post
 router.post("/post", controller.createPost);//
-router.get("/getPosts", controller.getPost);//
+router.get("/getPosts/:index", controller.getPost);//
 router.patch("/likePost/:postId/:like", controller.likePost);//
 router.patch("/view/:postId", controller.viewPost);//
 router.patch("/editPost/:postId", controller.editPost);//
