@@ -608,6 +608,7 @@ const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
     const { sessionToken } = req.body;
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
+    await Parse.User.logOut();
     await user.destroy();
     return res.status(200).json({
       message: "User deleted",
@@ -818,6 +819,26 @@ const deleteComment = async (req: Request, res: Response, next: NextFunction) =>
   }
 }
 
+const cerrarSesion = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const sessionToken: string = req.headers.authorization ?? "";
+    Parse.User.enableUnsafeCurrentUser();
+    const user = await Parse.User.become(sessionToken);
+
+    if (user) {
+      await Parse.User.logOut();
+    }
+    return res.status(200).json({
+      message: 'Logged out successfully',
+    });
+  } catch (error: any) {
+    console.error("Error logging out:", error.message);
+    return res.status(500).json({
+      message: 'Internal Server Error',
+    });
+  }
+};
+
 export default {
   profileChange,
   createBadge,
@@ -846,4 +867,5 @@ export default {
   getUserPosts,
   deletePost,
   deleteComment,
+  cerrarSesion,
 };
