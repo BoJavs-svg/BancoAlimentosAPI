@@ -591,23 +591,25 @@ const eggPollito = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-const resetPassword = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+// send a email with Cloud code for a password reposition
+const resetPassword = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email } = req.body;
-    await Parse.User.requestPasswordReset(email);
+    const user = await Parse.User.currentAsync();
+    if (user) {
+      // Call Cloud Function to send email verification
+      await Parse.Cloud.run("requestPasswordReset");
+    }
     return res.status(200).json({
-      message: "Email sent",
+      message: 'Password reset request sent successfully',
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error("Error sending password reset request:", error.message);
     return res.status(500).json({
-      message: "Internal Server Error",
+      message: 'Internal Server Error',
     });
   }
 };
+
 
 const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
