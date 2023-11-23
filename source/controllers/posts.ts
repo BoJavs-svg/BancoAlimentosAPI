@@ -214,24 +214,12 @@ const createComment = async (
     const sessionToken: string = req.headers.authorization ?? "";
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
-    comment.set("text", text);
-    
-    const Post = Parse.Object.extend("Post");
-    const commentPointerP = Post.createWithoutData(postId);
-    
-    comment.set("postId", commentPointerP);
-    
-    comment.set("userData",[user.get("username"),user.get("colorProfilePicture"),user.get("idProfilePicture"),user.get("visBadge")]);
-
-      const Users = Parse.Object.extend("_User");
-      const userId = Users.createWithoutData(user.id);
-
-      comment.set("userId", userId);
+    if (user){
       comment.set("text", text);
-      comment.set("username", username);
-      comment.set("idProfilePicture", user.get("idProfilePicture"));
+      const Post = Parse.Object.extend("Post");
+      const commentPointerP = Post.createWithoutData(postId);
       comment.set("postId", commentPointerP);
-
+      comment.set("userData",[user.get("username"),user.get("colorProfilePicture"),user.get("idProfilePicture"),user.get("visBadge")]);
       await comment.save();
 
       return res.status(200).json({
