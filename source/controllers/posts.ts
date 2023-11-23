@@ -205,13 +205,14 @@ const createComment = async (
 ) => {
   try {
     const {
-      sessionToken,
       postId,
       text,
-    }: { sessionToken: string; postId: string; text: string } = req.body;
+    }: { postId: string; text: string } = req.body;
     const Comment = Parse.Object.extend("Comment");
     const comment = new Comment();
     
+    const sessionToken: string = req.headers.authorization ?? "";
+    Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
     comment.set("text", text);
     
@@ -222,14 +223,29 @@ const createComment = async (
     
     comment.set("userData",[user.get("username"),user.get("colorProfilePicture"),user.get("idProfilePicture"),user.get("visBadge")]);
 
-    await comment.save();
+      const Users = Parse.Object.extend("_User");
+      const userId = Users.createWithoutData(user.id);
 
-    return res.status(200).json({
-      message: "New comment created successfully",
-    });
-  } catch (error) {
+      comment.set("userId", userId);
+      comment.set("text", text);
+      comment.set("username", username);
+      comment.set("idProfilePicture", user.get("idProfilePicture"));
+      comment.set("postId", commentPointerP);
+
+      await comment.save();
+
+      return res.status(200).json({
+        message: "New comment created successfully",
+      });
+    } else {
+      return res.status(400).json({
+        message: "User not found",
+      });
+    }
+  } catch (error: any) {
     return res.status(500).json({
       message: "Internal Server Error",
+      error: error.message
     });
   }
 };
@@ -579,23 +595,25 @@ const eggPollito = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-const resetPassword = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+// send a email with Cloud code for a password reposition
+const resetPassword = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email } = req.body;
-    await Parse.User.requestPasswordReset(email);
+    const user = await Parse.User.currentAsync();
+    if (user) {
+      // Call Cloud Function to send email verification
+      await Parse.Cloud.run("requestPasswordReset");
+    }
     return res.status(200).json({
-      message: "Email sent",
+      message: 'Password reset request sent successfully',
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error("Error sending password reset request:", error.message);
     return res.status(500).json({
-      message: "Internal Server Error",
+      message: 'Internal Server Error',
     });
   }
 };
+
 
 const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -757,6 +775,7 @@ const verificationEmail = async (req: Request, res: Response, next: NextFunction
     });
   }
 };
+
 const deletePost = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const postId = req.params.postId; 
@@ -837,7 +856,6 @@ export default {
   profileBadge,
   verificationEmail,
   getUserPosts,
-
   deletePost,
   deleteComment,
 };

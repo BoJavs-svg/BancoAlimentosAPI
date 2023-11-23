@@ -12,6 +12,7 @@ router.get("/deleteUser", controller.deleteUser);//
 router.patch("/profileBadge/:index", controller.profileBadge);
 router.patch("/changeProfile/", controller.profileChange); 
 router.patch("/badgeCreate/:badge", controller.createBadge);
+router.get("/verificationEmail", controller.verificationEmail);
 
 //Post
 router.post("/post", controller.createPost);//
