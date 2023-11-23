@@ -182,7 +182,7 @@ const getPost = async (req: Request, res: Response, next: NextFunction) => {
       };
     });
 
-    if (newPosts.length - index -20 < 0){
+    if (newPosts.length - index -20 > 0){
         newPosts.splice(newPosts.length - index - 20, newPosts.length);
     }
     
