@@ -21,6 +21,7 @@ router.patch("/view/:postId", controller.viewPost);//
 router.patch("/editPost/:postId", controller.editPost);//
 router.patch("/report/:objId/:type", controller.report);//
 router.patch("/deletePost/:postId", controller.deletePost);
+router.get("/getUserPosts", controller.getUserPosts);
 
 //Comment
 router.post("/comment", controller.createComment);
