@@ -147,13 +147,9 @@ const createPost = async (req: Request, res: Response, next: NextFunction) => {
 
     if (user) {
       post.set("text", text);
-      post.set("title", user.get("username"));
-      post.set("username", user.get("username"));
+      post.set("title", title);
+      post.set("userData",[user.get("username"),user.get("colorProfilePicture"),user.get("idProfilePicture"),user.get("visBadge")]);
 
-      const Users = Parse.Object.extend("_User");
-      const userPointer = Users.createWithoutData(user.id);
-
-      post.set("userPointer", userPointer);
       await post.save();
 
     return res.status(200).json({
@@ -169,6 +165,7 @@ const createPost = async (req: Request, res: Response, next: NextFunction) => {
 
 const getPost = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const index:number = parseInt(req.params.index);
     // Create a Query to Post table
     const parseQuery = new Parse.Query("Post");
     // Save objects returned from find query
@@ -185,6 +182,10 @@ const getPost = async (req: Request, res: Response, next: NextFunction) => {
       };
     });
 
+    if (newPosts.length - index -20 > 0){
+        newPosts.splice(newPosts.length - index - 20, newPosts.length);
+    }
+    
     return res.status(200).json({
       message: "Posts retrieved",
       posts:newPosts,
@@ -213,21 +214,12 @@ const createComment = async (
     const sessionToken: string = req.headers.authorization ?? "";
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
-    
-    if (user) {
-      const username = await user.get("username");
+    if (user){
+      comment.set("text", text);
       const Post = Parse.Object.extend("Post");
       const commentPointerP = Post.createWithoutData(postId);
-
-      const Users = Parse.Object.extend("_User");
-      const userId = Users.createWithoutData(user.id);
-
-      comment.set("userId", userId);
-      comment.set("text", text);
-      comment.set("username", username);
-      comment.set("idProfilePicture", user.get("idProfilePicture"));
       comment.set("postId", commentPointerP);
-
+      comment.set("userData",[user.get("username"),user.get("colorProfilePicture"),user.get("idProfilePicture"),user.get("visBadge")]);
       await comment.save();
 
       return res.status(200).json({
@@ -591,29 +583,32 @@ const eggPollito = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-const resetPassword = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+// send a email with Cloud code for a password reposition
+const resetPassword = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email } = req.body;
-    await Parse.User.requestPasswordReset(email);
+    const user = await Parse.User.currentAsync();
+    if (user) {
+      // Call Cloud Function to send email verification
+      await Parse.Cloud.run("requestPasswordReset");
+    }
     return res.status(200).json({
-      message: "Email sent",
+      message: 'Password reset request sent successfully',
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error("Error sending password reset request:", error.message);
     return res.status(500).json({
-      message: "Internal Server Error",
+      message: 'Internal Server Error',
     });
   }
 };
+
 
 const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { sessionToken } = req.body;
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
+    await Parse.User.logOut();
     await user.destroy();
     return res.status(200).json({
       message: "User deleted",
@@ -769,6 +764,7 @@ const verificationEmail = async (req: Request, res: Response, next: NextFunction
     });
   }
 };
+
 const deletePost = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const postId = req.params.postId; 
@@ -823,6 +819,26 @@ const deleteComment = async (req: Request, res: Response, next: NextFunction) =>
   }
 }
 
+const cerrarSesion = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const sessionToken: string = req.headers.authorization ?? "";
+    Parse.User.enableUnsafeCurrentUser();
+    const user = await Parse.User.become(sessionToken);
+
+    if (user) {
+      await Parse.User.logOut();
+    }
+    return res.status(200).json({
+      message: 'Logged out successfully',
+    });
+  } catch (error: any) {
+    console.error("Error logging out:", error.message);
+    return res.status(500).json({
+      message: 'Internal Server Error',
+    });
+  }
+};
+
 export default {
   profileChange,
   createBadge,
@@ -849,7 +865,7 @@ export default {
   profileBadge,
   verificationEmail,
   getUserPosts,
-
   deletePost,
   deleteComment,
+  cerrarSesion,
 };
