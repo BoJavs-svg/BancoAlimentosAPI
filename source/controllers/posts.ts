@@ -728,7 +728,7 @@ const getUserPosts = async (
       var posts: Parse.Object[] = await parseQuery.find();
       const userJson = user.toJSON();
       posts = posts.filter(
-        (post) => post.toJSON().username == userJson.username
+        (post) => post.toJSON().userData[0] == userJson.username,
       );
 
       return res.status(200).json({
@@ -740,7 +740,7 @@ const getUserPosts = async (
         message: "Pollo not found",
       });
     }
-  } catch (error) {
+  } catch (error:any) {
     return res.status(500).json({
       message: "Internal Server Error",
     });
