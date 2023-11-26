@@ -1,9 +1,16 @@
 /** source/controllers/posts.ts */
-import { Request, Response, NextFunction } from "express";
+import e, { Request, Response, NextFunction } from "express";
 import axios, { AxiosResponse } from "axios";
 import Parse from "parse/node";
 import * as dotenv from "dotenv";
+
+import crypto from 'crypto';
+
 dotenv.config();
+
+const algorithm = 'aes-256-cbc'; // Use AES 256-bit encryption
+const key : string = process.env.ENCRYPTION_KEY ?? ""; 
+const iv = crypto.randomBytes(16); // Generate a random 16-byte IV
 
 //DB CONNECTION
 const appID = process.env.APPLICATION_ID;
@@ -52,20 +59,38 @@ interface UserLoginRequest {
   username: string;
   password: string;
 }
-
+interface ExtendedUser extends Parse.User {
+  sessionToken?: string;
+}
 const userLogin = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { username, password } = req.body;
+    console.log(key);
+    const user = await Parse.User.logIn(username, password) as ExtendedUser;
+    if (user) {
+      const sessionToken = user.getSessionToken();
+      
+      let cipher = crypto.createCipheriv(algorithm, Buffer.from(key), iv);
+      let encryptedSessionToken = cipher.update(sessionToken, 'utf8', 'hex');
+      encryptedSessionToken += cipher.final('hex');
 
-    const user = await Parse.User.logIn(username, password);
-
+      const nUser = {
+        ...user.toJSON(),
+        sessionToken: encryptedSessionToken
+      };
+      
       return res.status(200).json({
-        user: user,
+        user: nUser,
       });
+    } else {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
   } catch (error) {
     return res.status(500).json({
       message: error,
-    });
+        });
   }
 };
 
@@ -75,11 +100,22 @@ const authSessionToken = async (
   next: NextFunction
 ) => {
   try {
-    const sessionToken: string = req.params.sessionToken;
+    //  decrypt session token
+    const sessionToken: string = req.headers.authorization ?? "";
+    let decipher = crypto.createDecipheriv(algorithm, Buffer.from(key), iv);
+    let decryptedSessionToken = decipher.update(sessionToken, 'hex', 'utf8');
+    decryptedSessionToken += decipher.final('utf8');
+
+    console.log(sessionToken);
     Parse.User.enableUnsafeCurrentUser();
-    const user = await Parse.User.become(sessionToken);
+    const user = await Parse.User.become(decryptedSessionToken);
+    const nUser = {
+      ...user.toJSON(),
+      sessionToken: sessionToken
+    };
+
     return res.status(200).json({
-      user,
+      user: nUser,
     });
   } catch (error) {
     if (
@@ -96,21 +132,24 @@ const authSessionToken = async (
       );
       return res.status(500).json({
         message: "Internal Server Error",
-        error: error,
       });
     }
-  } finally {
-    // Parse.User.disableUnsafeCurrentUser();
-  }
+  } 
 };
 
 const createPollo = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const {
-      sessionToken,
       name,
       color,
-    }: { sessionToken: string; name: string; color: number } = req.body;
+    }: { name: string; color: number } = req.body;
+
+    let sessionToken: string = req.headers.authorization ?? "";
+    let decipher = crypto.createDecipheriv(algorithm, Buffer.from(key), iv);
+    let decryptedSessionToken = decipher.update(sessionToken, 'hex', 'utf8');
+    decryptedSessionToken += decipher.final('utf8');
+    sessionToken = decryptedSessionToken;
+
     const Pollo = Parse.Object.extend("Pollo");
     const pollo: Parse.Object = new Pollo();
     Parse.User.enableUnsafeCurrentUser();
@@ -131,6 +170,7 @@ const createPollo = async (req: Request, res: Response, next: NextFunction) => {
     console.log(error);
     return res.status(500).json({
       message: "Internal Server Error",
+      error: error,
     });
   }
 };
@@ -141,7 +181,11 @@ const createPost = async (req: Request, res: Response, next: NextFunction) => {
     const Post = Parse.Object.extend("Post");
     const post = new Post();
 
-    const sessionToken: string = req.headers.authorization ?? "";
+    let sessionToken: string = req.headers.authorization ?? "";
+    let decipher = crypto.createDecipheriv(algorithm, Buffer.from(key), iv);
+    let decryptedSessionToken = decipher.update(sessionToken, 'hex', 'utf8');
+    decryptedSessionToken += decipher.final('utf8');
+    sessionToken = decryptedSessionToken;
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
 
@@ -171,7 +215,11 @@ const getPost = async (req: Request, res: Response, next: NextFunction) => {
     // Save objects returned from find query
     let posts: Parse.Object[] = await parseQuery.find();
 
-    const sessionToken: string = req.headers.authorization ?? "";
+    let sessionToken: string = req.headers.authorization ?? "";
+    let decipher = crypto.createDecipheriv(algorithm, Buffer.from(key), iv);
+    let decryptedSessionToken = decipher.update(sessionToken, 'hex', 'utf8');
+    decryptedSessionToken += decipher.final('utf8');
+    sessionToken = decryptedSessionToken;
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
 
@@ -211,7 +259,11 @@ const createComment = async (
     const Comment = Parse.Object.extend("Comment");
     const comment = new Comment();
     
-    const sessionToken: string = req.headers.authorization ?? "";
+    let sessionToken: string = req.headers.authorization ?? "";
+    let decipher = crypto.createDecipheriv(algorithm, Buffer.from(key), iv);
+    let decryptedSessionToken = decipher.update(sessionToken, 'hex', 'utf8');
+    decryptedSessionToken += decipher.final('utf8');
+    sessionToken = decryptedSessionToken;
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
     if (user){
@@ -270,7 +322,11 @@ const likePost = async (req: Request, res: Response, next: NextFunction) => {
     if (post) {
       post.increment("nLikes", like);
 
-      const sessionToken: string = req.headers.authorization ?? "";
+      let sessionToken: string = req.headers.authorization ?? "";
+    let decipher = crypto.createDecipheriv(algorithm, Buffer.from(key), iv);
+    let decryptedSessionToken = decipher.update(sessionToken, 'hex', 'utf8');
+    decryptedSessionToken += decipher.final('utf8');
+    sessionToken = decryptedSessionToken;
       Parse.User.enableUnsafeCurrentUser();
       const user = await Parse.User.become(sessionToken);
 
@@ -544,7 +600,11 @@ const eggPollito = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { nEggs } = req.body;
 
-    const sessionToken: string = req.headers.authorization ?? "";
+    let sessionToken: string = req.headers.authorization ?? "";
+    let decipher = crypto.createDecipheriv(algorithm, Buffer.from(key), iv);
+    let decryptedSessionToken = decipher.update(sessionToken, 'hex', 'utf8');
+    decryptedSessionToken += decipher.final('utf8');
+    sessionToken = decryptedSessionToken;
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
 
@@ -605,7 +665,11 @@ const resetPassword = async (req: Request, res: Response, next: NextFunction) =>
 
 const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { sessionToken } = req.body;
+    let sessionToken: string = req.headers.authorization ?? "";
+    let decipher = crypto.createDecipheriv(algorithm, Buffer.from(key), iv);
+    let decryptedSessionToken = decipher.update(sessionToken, 'hex', 'utf8');
+    decryptedSessionToken += decipher.final('utf8');
+    sessionToken = decryptedSessionToken;
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
     await Parse.User.logOut();
@@ -627,7 +691,11 @@ const profileBadge = async (
 ) => {
   try {
     const badgeIndex = parseInt(req.params.index);
-    const sessionToken: string = req.headers.authorization ?? "";
+    let sessionToken: string = req.headers.authorization ?? "";
+    let decipher = crypto.createDecipheriv(algorithm, Buffer.from(key), iv);
+    let decryptedSessionToken = decipher.update(sessionToken, 'hex', 'utf8');
+    decryptedSessionToken += decipher.final('utf8');
+    sessionToken = decryptedSessionToken;
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
 
@@ -653,7 +721,11 @@ const profileBadge = async (
 const createBadge = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const badge: number = parseInt(req.params.badge);
-    const sessionToken: string = req.headers.authorization ?? "";
+    let sessionToken: string = req.headers.authorization ?? "";
+    let decipher = crypto.createDecipheriv(algorithm, Buffer.from(key), iv);
+    let decryptedSessionToken = decipher.update(sessionToken, 'hex', 'utf8');
+    decryptedSessionToken += decipher.final('utf8');
+    sessionToken = decryptedSessionToken;
 
     Parse.User.enableUnsafeCurrentUser();
 
@@ -691,7 +763,11 @@ const profileChange = async (
       idProfilePicture,
     }: { colorProfilePicture: number; idProfilePicture: number } = req.body;
 
-    const sessionToken: string = req.headers.authorization ?? "";
+    let sessionToken: string = req.headers.authorization ?? "";
+    let decipher = crypto.createDecipheriv(algorithm, Buffer.from(key), iv);
+    let decryptedSessionToken = decipher.update(sessionToken, 'hex', 'utf8');
+    decryptedSessionToken += decipher.final('utf8');
+    sessionToken = decryptedSessionToken;
 
     Parse.User.enableUnsafeCurrentUser();
 
@@ -719,7 +795,11 @@ const getUserPosts = async (
   next: NextFunction
 ) => {
   try {
-    const sessionToken: string = req.headers.authorization ?? "";
+    let sessionToken: string = req.headers.authorization ?? "";
+    let decipher = crypto.createDecipheriv(algorithm, Buffer.from(key), iv);
+    let decryptedSessionToken = decipher.update(sessionToken, 'hex', 'utf8');
+    decryptedSessionToken += decipher.final('utf8');
+    sessionToken = decryptedSessionToken;
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
 
@@ -821,7 +901,11 @@ const deleteComment = async (req: Request, res: Response, next: NextFunction) =>
 
 const cerrarSesion = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const sessionToken: string = req.headers.authorization ?? "";
+    let sessionToken: string = req.headers.authorization ?? "";
+    let decipher = crypto.createDecipheriv(algorithm, Buffer.from(key), iv);
+    let decryptedSessionToken = decipher.update(sessionToken, 'hex', 'utf8');
+    decryptedSessionToken += decipher.final('utf8');
+    sessionToken = decryptedSessionToken;
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(sessionToken);
 

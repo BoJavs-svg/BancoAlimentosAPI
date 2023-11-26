@@ -4,7 +4,7 @@ import controller from "../controllers/posts";
 const router = express.Router();
 //User
 router.post("/userSignUp", controller.createUser);//
-router.get("/authSessionToken/:sessionToken", controller.authSessionToken);//
+router.get("/authSessionToken", controller.authSessionToken);//
 router.post("/userLogin", controller.userLogin);//
 router.patch("/profileBadge/:index", controller.profileBadge);//
 router.post("/resetPassword", controller.resetPassword);//
