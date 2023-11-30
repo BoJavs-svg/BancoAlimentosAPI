@@ -19,8 +19,6 @@ const rest = process.env.REST_API;
 if (appID && jsKey) {
   Parse.initialize(appID, jsKey, rest);
   Parse.serverURL = "https://parseapi.back4app.com/";
-} else {
-  console.log("No Parse error");
 }
 //USER
 interface CreateUserRequest {
@@ -89,7 +87,7 @@ const userLogin = async (req: Request, res: Response, next: NextFunction) => {
     }
   } catch (error) {
     return res.status(500).json({
-      message: error,
+      message: "Internal Server Error",
         });
   }
 };
@@ -126,10 +124,6 @@ const authSessionToken = async (
         message: "Usuario no encontrado",
       });
     } else {
-      console.error(
-        "Error durante la autenticación con token de sesión:",
-        error
-      );
       return res.status(500).json({
         message: "Internal Server Error",
       });
@@ -170,7 +164,6 @@ const createPollo = async (req: Request, res: Response, next: NextFunction) => {
     console.log(error);
     return res.status(500).json({
       message: "Internal Server Error",
-      error: error,
     });
   }
 };
@@ -241,7 +234,6 @@ const getPost = async (req: Request, res: Response, next: NextFunction) => {
   } catch (error) {
     return res.status(500).json({
       message: "Internal Server Error",
-      error: error,
     });
   }
 };
@@ -285,7 +277,6 @@ const createComment = async (
   } catch (error: any) {
     return res.status(500).json({
       message: "Internal Server Error",
-      error: error.message
     });
   }
 };
@@ -655,7 +646,6 @@ const resetPassword = async (req: Request, res: Response, next: NextFunction) =>
       message: 'Password reset request sent successfully',
     });
   } catch (error: any) {
-    console.error("Error sending password reset request:", error.message);
     return res.status(500).json({
       message: 'Internal Server Error',
     });
@@ -838,7 +828,6 @@ const verificationEmail = async (req: Request, res: Response, next: NextFunction
       message: 'Email verification request sent successfully',
     });
   } catch (error: any) {
-    console.error("Error sending email verification request:", error.message);
     return res.status(500).json({
       message: 'Internal Server Error',
     });
@@ -894,7 +883,6 @@ const deleteComment = async (req: Request, res: Response, next: NextFunction) =>
   } catch (error) {
     return res.status(500).json({
       message: "Internal Server Error",
-      error: error
     });
   }
 }
@@ -916,7 +904,6 @@ const cerrarSesion = async (req: Request, res: Response, next: NextFunction) => 
       message: 'Logged out successfully',
     });
   } catch (error: any) {
-    console.error("Error logging out:", error.message);
     return res.status(500).json({
       message: 'Internal Server Error',
     });
