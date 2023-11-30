@@ -8,9 +8,9 @@ import crypto from 'crypto';
 
 dotenv.config();
 
-const algorithm = 'aes-256-cbc'; // Use AES 256-bit encryption
+const algorithm = process.env.ALGORITHM ?? "";
 const key : string = process.env.ENCRYPTION_KEY ?? ""; 
-const iv = crypto.randomBytes(16); // Generate a random 16-byte IV
+const iv = Buffer.from(process.env.IV ?? "", 'hex');
 
 //DB CONNECTION
 const appID = process.env.APPLICATION_ID;
