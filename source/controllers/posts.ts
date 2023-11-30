@@ -635,13 +635,10 @@ const eggPollito = async (req: Request, res: Response, next: NextFunction) => {
 // send a email with Cloud code for a password reposition
 const resetPassword = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const user = await Parse.User.currentAsync();
-    if (user) {
-      // Call Cloud Function to send email verification
-      await Parse.Cloud.run("requestPasswordReset");
-    }
+    const { email } = req.body;
+    await Parse.Cloud.run("resetPassword", { email });
     return res.status(200).json({
-      message: 'Password reset request sent successfully',
+      message: 'Email sent successfully',
     });
   } catch (error: any) {
     return res.status(500).json({
