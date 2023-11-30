@@ -636,13 +636,14 @@ const eggPollito = async (req: Request, res: Response, next: NextFunction) => {
 const resetPassword = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { email } = req.body;
-    await Parse.Cloud.run("resetPassword", { email });
+    await Parse.User.requestPasswordReset(email);
     return res.status(200).json({
       message: 'Email sent successfully',
     });
   } catch (error: any) {
     return res.status(500).json({
       message: 'Internal Server Error',
+      error: error.message,
     });
   }
 };
