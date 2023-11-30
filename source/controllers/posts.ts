@@ -96,15 +96,14 @@ const authSessionToken = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+) => {///
   try {
     //  decrypt session token
-    const sessionToken: string = req.headers.authorization ?? "";
+    const sessionToken: string = req.params.auth;
     let decipher = crypto.createDecipheriv(algorithm, Buffer.from(key), iv);
     let decryptedSessionToken = decipher.update(sessionToken, 'hex', 'utf8');
     decryptedSessionToken += decipher.final('utf8');
 
-    console.log(sessionToken);
     Parse.User.enableUnsafeCurrentUser();
     const user = await Parse.User.become(decryptedSessionToken);
     const nUser = {
@@ -161,7 +160,7 @@ const createPollo = async (req: Request, res: Response, next: NextFunction) => {
       pollo: pollo,
     });
   } catch (error) {
-    console.log(error);
+    
     return res.status(500).json({
       message: "Internal Server Error",
     });
@@ -570,7 +569,6 @@ const nextStagePollito = async (
 
       pollo.set("nextStage", nextStage <= 0 ? nextStageRandom : nextStage);
       var updatedPollo = await pollo.save();
-
       return res.status(200).json({
         message: "Pollito changed successfully",
         pollo: updatedPollo,
